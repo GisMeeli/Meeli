@@ -1,0 +1,39 @@
+{
+  "name": "meeli-server",
+  "version": "1.0.0",
+  "description": "Meeli server application.",
+  "main": "src/server.ts",
+  "scripts": {
+    "build": "tsc -p .",
+    "dev": "nodemon src/server.ts",
+    "start": "ts-node src/server.ts",
+    "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js"
+  },
+  "keywords": [],
+  "author": "W. Benavides, B. Cruz, M. Rivas",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "fluentvalidation-ts": "^2.2.1",
+    "jsonwebtoken": "^8.5.1",
+    "morgan": "^1.9.1",
+    "pg": "^8.3.0",
+    "reflect-metadata": "^0.1.13",
+    "socket.io": "^2.3.0",
+    "typeorm": "^0.2.25"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.5",
+    "@types/express": "^4.17.2",
+    "@types/jsonwebtoken": "^8.5.0",
+    "@types/morgan": "^1.7.37",
+    "@types/node": "^13.5.1",
+    "@types/socket.io": "^2.1.11",
+    "debug": "^4.1.1",
+    "nodemon": "^2.0.2",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5"
+  }
+}
