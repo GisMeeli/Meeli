@@ -6,7 +6,7 @@ export default class TilesUtils {
     }
     static lat2tile(lat, zoom) {
         return (Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom)));
-    }
+    }   
     static  tile2long(x,z) {
         return (x/Math.pow(2,z)*360-180);
     }
@@ -22,9 +22,6 @@ export default class TilesUtils {
         const right_tile = TilesUtils.lon2tile(xmax, zoom);
         const width = Math.abs(left_tile - right_tile) + 1;
         const height = Math.abs(top_tile - bottom_tile) + 1;
-
-        console.log({top_tile, left_tile, bottom_tile, right_tile})
-        console.log({width, height})
 
         return {width, height}; 
     }

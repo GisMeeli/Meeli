@@ -9,12 +9,18 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { SidenavComponent } from './sidenav/sidenav.component';
 import { MapComponent } from './map/map.component';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CreateGroupComponent } from './create-group/create-group.component';
+import { DialogService } from './services/dialog/dialog.service';
+
+
 
 @NgModule({
   declarations: [
     AppComponent,
     SidenavComponent,
-    MapComponent
+    MapComponent,
+    CreateGroupComponent
   ],
   imports: [
     BrowserModule,
@@ -22,9 +28,13 @@ import { CommonModule } from '@angular/common';
     AppRoutingModule,
     BrowserAnimationsModule,
     RouterTestingModule,
-    MaterialModule
+    MaterialModule,
+    FormsModule,
   ],
-  providers: [],
+  entryComponents: [
+    CreateGroupComponent
+  ],
+  providers: [DialogService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
