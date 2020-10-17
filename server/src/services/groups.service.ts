@@ -18,17 +18,16 @@ export class GroupsService implements Service {
     return result;
   }
 
-  async getGroup(hashtag: string): Promise<GroupModel> {
-    throw new Error('Method not implemented.');
+  async getGroupByHashtag(hashtag: string): Promise<GroupModel> {
+    return await this.repository.getGroupByHashtag(hashtag);
   }
 
   async getGroups(): Promise<GroupModel[]> {
-    throw new Error('Method not implemented.');
+    return await this.repository.getGroups();
   }
 
   async getHashtagAvailability(hashtag: string): Promise<boolean> {
-    //const group = await this.getGroup(hashtag);
-    //return group == null || group == undefined;
-    return true;
+    const group = await this.getGroupByHashtag(hashtag);
+    return group == null || group == undefined;
   }
 }

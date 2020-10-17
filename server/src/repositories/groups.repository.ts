@@ -2,9 +2,11 @@ import { Repository } from '../abstractions/repository';
 import { GroupModel } from '../models/group.model';
 
 export interface GroupsRepository extends Repository {
-  addGroup(group: GroupModel): Promise<GroupModel>;
+  addGroup(group: GroupModel): GroupModel | any;
 
-  getGroup(hashtag: string): GroupModel;
+  getGroupByHashtag(hashtag: string): GroupModel | any;
 
-  getGroups(): GroupModel[];
+  getGroupById(id: string): GroupModel | any;
+
+  getGroups(): GroupModel[] | any;
 }
