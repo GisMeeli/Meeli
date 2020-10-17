@@ -1,6 +1,9 @@
 import express, { Application, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
+import { GroupsRouter } from './routes/groups.route';
+import { GroupsService } from './services/groups.service';
+import { GroupsDao } from './data-sources/typeorm/dao/groups.dao';
 
 /**
  * App de Express.
@@ -36,6 +39,8 @@ export class App {
     this.app.get('/', (req: Request, res: Response) => {
       res.send('<h1>Hello, world!</h1>');
     });
+
+    this.app.use('/groups', GroupsRouter(new GroupsService(new GroupsDao())));
   }
 }
 

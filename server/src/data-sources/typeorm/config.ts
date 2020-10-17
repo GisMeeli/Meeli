@@ -1,7 +1,8 @@
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
+import { GroupCollaboratorEntity } from './entity/group-collaborator.entity';
 import { GroupEntity } from './entity/group.entity';
 
-const ormConfig: PostgresConnectionOptions = {
+export default {
   type: 'postgres',
   host: process.env.DB_HOST,
   port: Number.parseInt(process.env.DB_PORT),
@@ -9,8 +10,6 @@ const ormConfig: PostgresConnectionOptions = {
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   synchronize: true,
-  logging: false,
-  entities: [GroupEntity]
-};
-
-export { ormConfig };
+  logging: true,
+  entities: [GroupEntity, GroupCollaboratorEntity]
+} as PostgresConnectionOptions;
