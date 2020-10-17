@@ -1,0 +1,16 @@
+{
+  "entities": [
+     "src/data-sources/typeorm/entity/**/*.ts"
+  ],
+  "migrations": [
+     "src/data-sources/typeorm/migration/**/*.ts"
+  ],
+  "subscribers": [
+     "src/data-sources/typeorm/subscriber/**/*.ts"
+  ],
+  "cli": {
+     "entitiesDir": "src/data-sources/typeorm/entity",
+     "migrationsDir": "src/data-sources/typeorm/migration",
+     "subscribersDir": "src/data-sources/typeorm/subscriber"
+  }
+}
