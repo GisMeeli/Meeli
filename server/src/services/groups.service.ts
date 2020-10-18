@@ -27,6 +27,18 @@ export class GroupsService implements Service {
       return buildErrorResponse(validation);
     }
 
+    const currentCollaborators = await this.getGroupCollaborators(collaborator.group);
+    if (currentCollaborators.map((c) => c.name).includes(collaborator.name)) {
+      return buildErrorResponse({
+        message: `Ya existe un colaborador con el nombre '${collaborator.name}' en este grupo.`
+      });
+    }
+    if (currentCollaborators.map((c) => c.key).includes(collaborator.key)) {
+      return buildErrorResponse({
+        message: `Ya existe un colaborador con la misma clave en este grupo.`
+      });
+    }
+
     const result = this.repository.addGroupCollaborator(collaborator);
 
     if (result != undefined) {
