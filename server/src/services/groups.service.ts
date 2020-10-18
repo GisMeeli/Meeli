@@ -1,4 +1,5 @@
 import { Service } from '../abstractions/service';
+import { GroupCollaboratorModel } from '../models/group-collaborator.model';
 import { GroupModel } from '../models/group.model';
 import { GroupsRepository } from '../repositories/groups.repository';
 import { buildErrorResponse } from '../utils/service-response-handler';
@@ -19,9 +20,45 @@ export class GroupsService implements Service {
     return this.formatGroup(result);
   }
 
+  async addGroupCollaborator(
+    groupHashtag: string,
+    collaborator: GroupCollaboratorModel
+  ): Promise<GroupCollaboratorModel> {
+    const targetGroup = await this.getGroupByHashtag(groupHashtag);
+    if (targetGroup == undefined)
+      return buildErrorResponse({ message: `No group found with hashtag '${groupHashtag}.'` });
+
+    collaborator.group = targetGroup.id;
+    const result = this.repository.addGroupCollaborator(collaborator);
+
+    if (result != undefined) {
+      return result;
+    } else {
+      return buildErrorResponse({ message: `An error occured on collaborator insert.` });
+    }
+  }
+
+  async deleteGroupCollaborator(groupHashtag: string, collaboratorId: string): Promise<boolean> {
+    const targetGroup = await this.getGroupByHashtag(groupHashtag);
+    if (targetGroup == undefined) {
+      return buildErrorResponse({ message: `No group with hashtag '${groupHashtag}' was found. ` });
+    }
+
+    return await this.repository.deleteGroupCollaborator(collaboratorId);
+  }
+
   async getGroupByHashtag(hashtag: string): Promise<GroupModel> {
     const result = await this.repository.getGroupByHashtag(hashtag);
     return result != undefined ? this.formatGroup(result) : undefined;
+  }
+
+  async getGroupCollaborators(hashtag: string): Promise<GroupCollaboratorModel[]> {
+    const targetGroup = await this.getGroupByHashtag(hashtag);
+    if (targetGroup == undefined) {
+      return buildErrorResponse({ message: `No group with hashtag '${hashtag}' was found. ` });
+    }
+
+    return await this.repository.getGroupCollaborators(targetGroup.id);
   }
 
   async getGroups(): Promise<GroupModel[]> {
