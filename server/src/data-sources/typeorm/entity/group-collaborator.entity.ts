@@ -11,19 +11,12 @@ export class GroupCollaboratorEntity implements GroupCollaboratorModel {
   @Column({ name: 'group' })
   group: string;
 
-  @Column({
-    name: 'key',
-    type: 'character varying',
-    length: 32,
-    nullable: false
-  })
+  @Column({ name: 'name', type: 'character varying', length: 32, nullable: false })
+  name: string;
+
+  @Column({ name: 'key', type: 'character varying', length: 32, nullable: false })
   key: string;
 
-  @Column({
-    name: 'creation',
-    type: 'timestamp',
-    nullable: false,
-    default: () => 'now()'
-  })
+  @Column({ name: 'creation', type: 'timestamp', nullable: false, default: () => 'now()' })
   creation: Date;
 }

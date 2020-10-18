@@ -3,6 +3,7 @@ import { GroupCollaboratorModel } from '../models/group-collaborator.model';
 import { GroupModel } from '../models/group.model';
 import { GroupsRepository } from '../repositories/groups.repository';
 import { buildErrorResponse } from '../utils/service-response-handler';
+import { GroupCollaboratorModelValidator } from '../validators/group-collaborator-model.validator';
 import { GroupModelValidator } from '../validators/group-model.validator';
 import { hasValidationErrors } from '../validators/validator-utils';
 
@@ -20,15 +21,12 @@ export class GroupsService implements Service {
     return this.formatGroup(result);
   }
 
-  async addGroupCollaborator(
-    groupHashtag: string,
-    collaborator: GroupCollaboratorModel
-  ): Promise<GroupCollaboratorModel> {
-    const targetGroup = await this.getGroupByHashtag(groupHashtag);
-    if (targetGroup == undefined)
-      return buildErrorResponse({ message: `No group found with hashtag '${groupHashtag}.'` });
+  async addGroupCollaborator(collaborator: GroupCollaboratorModel): Promise<GroupCollaboratorModel> {
+    const validation = await new GroupCollaboratorModelValidator(this).validateAsync(collaborator);
+    if (hasValidationErrors(validation)) {
+      return buildErrorResponse(validation);
+    }
 
-    collaborator.group = targetGroup.id;
     const result = this.repository.addGroupCollaborator(collaborator);
 
     if (result != undefined) {
@@ -38,13 +36,12 @@ export class GroupsService implements Service {
     }
   }
 
-  async deleteGroupCollaborator(groupHashtag: string, collaboratorId: string): Promise<boolean> {
-    const targetGroup = await this.getGroupByHashtag(groupHashtag);
-    if (targetGroup == undefined) {
-      return buildErrorResponse({ message: `No group with hashtag '${groupHashtag}' was found. ` });
-    }
-
+  async deleteGroupCollaborator(collaboratorId: string): Promise<boolean> {
     return await this.repository.deleteGroupCollaborator(collaboratorId);
+  }
+
+  async getGroupById(id: string): Promise<GroupModel> {
+    return await this.repository.getGroupById(id);
   }
 
   async getGroupByHashtag(hashtag: string): Promise<GroupModel> {
@@ -52,13 +49,8 @@ export class GroupsService implements Service {
     return result != undefined ? this.formatGroup(result) : undefined;
   }
 
-  async getGroupCollaborators(hashtag: string): Promise<GroupCollaboratorModel[]> {
-    const targetGroup = await this.getGroupByHashtag(hashtag);
-    if (targetGroup == undefined) {
-      return buildErrorResponse({ message: `No group with hashtag '${hashtag}' was found. ` });
-    }
-
-    return await this.repository.getGroupCollaborators(targetGroup.id);
+  async getGroupCollaborators(groupId: string): Promise<GroupCollaboratorModel[]> {
+    return await this.repository.getGroupCollaborators(groupId);
   }
 
   async getGroups(): Promise<GroupModel[]> {
@@ -69,6 +61,10 @@ export class GroupsService implements Service {
   async getHashtagAvailability(hashtag: string): Promise<boolean> {
     const group = await this.getGroupByHashtag(hashtag);
     return group == null || group == undefined;
+  }
+
+  async getGroupIdByHashtag(hashtag: string): Promise<string> {
+    return (await this.getGroupByHashtag(hashtag)).id;
   }
 
   private formatGroup(group: GroupModel): GroupModel {
