@@ -1,0 +1,100 @@
+<div style="display: flex; flex-direction: column;">
+    <h2>Crear nuevo grupo</h2>
+
+    <mat-form-field appearance="standard" style="width: 80%; margin: 0; margin-left: 2.5%; max-width: 300px;">
+        <mat-label>Nombre del grupo</mat-label>
+        <input matInput placeholder="" />
+    </mat-form-field>
+
+    <mat-form-field appearance="standard" style="width: 80%; margin: 0 auto; margin-left: 2.5%; max-width: 300px;">
+        <mat-label>Hash del grupo</mat-label>
+        <input matInput placeholder="Ex. 1234" />
+        <mat-icon matPrefix style="display: flex !important;">
+            <div style="margin: auto;">#</div>
+        </mat-icon>
+    </mat-form-field>
+
+    <h3>Usuarios</h3>
+
+    <div style="max-height: 43vh; position: relative; min-height: 250px;"
+        [style.overflowY]="addingUser? 'hidden': 'auto'">
+
+        <div *ngIf="addingUser"
+            style="position: absolute; background-color: rgba(0, 0, 0, 0.25); top: 0; left: 0; z-index: 100; width: 100%; height: 100%;"
+            (click)="addingUser = false">
+            <mat-card (click)="$event.stopPropagation()"
+                style="min-width: unset; width: calc(92% - 32px); margin: 20px 4%">
+
+                <h2>Añadir gestor</h2>
+
+
+                <div style="display: flex;">
+
+                    <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto; margin-left: 2.5%;">
+                        <mat-label>Nombre</mat-label>
+                        <input matInput />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto; margin-left: 2.5%;">
+                        <mat-label>Otra cosa</mat-label>
+                        <input matInput />
+                    </mat-form-field>
+
+                </div>
+
+                <div style="display: flex; justify-content: space-around;">
+                    <button mat-stroked-button style="margin: 10px 10px; width: 30%; min-width: min-content; "
+                        (click)="addingUser = false">Cancelar </button>
+                    <button mat-stroked-button style="margin: 10px 10px; width: 30%; min-width: min-content; "
+                        [disabled]="false" (click)="addUser()" color="accent">Ver grupo </button>
+                </div>
+
+            </mat-card>
+
+        </div>
+
+        <table mat-table [dataSource]="users" style="width: 100%; overflow-y: auto;">
+
+            <!--- Note that these columns can be defined in any order.
+              The actual rendered columns are set as a property on the row definition" -->
+
+            <!-- Position Column -->
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef> Nombre </th>
+                <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+            </ng-container>
+
+            <!-- Weight Column -->
+            <ng-container matColumnDef="accessCode">
+                <th mat-header-cell *matHeaderCellDef> Codigo de acceso </th>
+                <td mat-cell *matCellDef="let element"> {{element.accessCode}} </td>
+            </ng-container>
+
+            <!-- Symbol Column -->
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>
+                    <div style="display: flex; justify-content: flex-end; width: 100%;">
+                        <button mat-stroked-button style="min-width: min-content; margin: auto 0; height: min-content;"
+                            (click)="addingUser = !addingUser" color="primary">Añadir gestor</button>
+                    </div>
+                </th>
+                <td mat-cell *matCellDef="let element"> Acciones </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columns"></tr>
+            <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+        </table>
+
+        <div *ngIf="users.length == 0" style="display: flex; justify-content: center; margin-top: 20px;">
+            Este grupo no tiene miembros aún
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-around;">
+        <button mat-stroked-button style="margin: 10px 10px; width: 30%; min-width: min-content; "
+            >Cancelar </button>
+        <button mat-stroked-button style="margin: 10px 10px; width: 30%; min-width: min-content; "
+            [disabled]="false"  color="accent">Crear grupo </button>
+    </div>
+</div>

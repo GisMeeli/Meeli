@@ -1,0 +1,12 @@
+.app-container {
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - 64px);
+    background-color: rgb(245, 245, 245);
+}
+
+@media only screen and (max-width: 599px) {
+    .app-container {
+        height: calc(100vh - 56px);
+    }
+}
