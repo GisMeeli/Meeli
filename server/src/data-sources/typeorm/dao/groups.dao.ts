@@ -1,6 +1,8 @@
+import { GroupCollaboratorModel } from '../../../models/group-collaborator.model';
 import { GroupModel } from '../../../models/group.model';
 import { GroupsRepository } from '../../../repositories/groups.repository';
 import { getDatabaseConnection } from '../connection-manager';
+import { GroupCollaboratorEntity } from '../entity/group-collaborator.entity';
 import { GroupEntity } from '../entity/group.entity';
 
 export class GroupsDao implements GroupsRepository {
@@ -14,6 +16,29 @@ export class GroupsDao implements GroupsRepository {
       .execute();
 
     return result.generatedMaps[0] as GroupModel;
+  }
+
+  async addGroupCollaborator(collaborator: GroupCollaboratorModel): Promise<GroupCollaboratorModel | any> {
+    const result = await (await getDatabaseConnection())
+      .createQueryBuilder()
+      .insert()
+      .into(GroupCollaboratorEntity)
+      .values(collaborator)
+      .returning('*')
+      .execute();
+
+    return result.generatedMaps[0] as GroupCollaboratorModel;
+  }
+
+  async deleteGroupCollaborator(id: string): Promise<boolean> {
+    const result = await (await getDatabaseConnection())
+      .createQueryBuilder()
+      .delete()
+      .from(GroupCollaboratorEntity)
+      .where('id = :value', { value: id })
+      .execute();
+
+    return 0 < result.affected;
   }
 
   async getGroupByHashtag(hashtag: string): Promise<GroupModel | any> {
@@ -34,6 +59,16 @@ export class GroupsDao implements GroupsRepository {
       .getMany();
 
     return 0 < results.length ? results[0] : undefined;
+  }
+
+  async getGroupCollaborators(groupId: string) {
+    const results = await (await getDatabaseConnection())
+      .getRepository(GroupCollaboratorEntity)
+      .createQueryBuilder('collaborator')
+      .where('collaborator.group = :value', { value: groupId })
+      .getMany();
+
+    return results;
   }
 
   async getGroups(): Promise<GroupModel[]> {

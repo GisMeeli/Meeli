@@ -1,11 +1,14 @@
-import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { GroupCollaboratorModel } from '../../../models/group-collaborator.model';
 import { GroupEntity } from './group.entity';
 
 @Entity({ name: 'group_collaborator' })
 export class GroupCollaboratorEntity implements GroupCollaboratorModel {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
   @OneToMany(() => GroupEntity, (group) => group.collaborators)
-  @PrimaryColumn({ name: 'group' })
+  @Column({ name: 'group' })
   group: string;
 
   @Column({

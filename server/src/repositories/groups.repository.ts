@@ -1,12 +1,19 @@
 import { Repository } from '../abstractions/repository';
+import { GroupCollaboratorModel } from '../models/group-collaborator.model';
 import { GroupModel } from '../models/group.model';
 
 export interface GroupsRepository extends Repository {
-  addGroup(group: GroupModel): GroupModel | any;
+  addGroup(group: GroupModel): Promise<GroupModel | any>;
 
-  getGroupByHashtag(hashtag: string): GroupModel | any;
+  addGroupCollaborator(collaborator: GroupCollaboratorModel): Promise<GroupCollaboratorModel | any>;
 
-  getGroupById(id: string): GroupModel | any;
+  deleteGroupCollaborator(id: string): Promise<boolean>;
 
-  getGroups(): GroupModel[] | any;
+  getGroupByHashtag(hashtag: string): Promise<GroupModel | any>;
+
+  getGroupById(id: string): Promise<GroupModel | any>;
+
+  getGroupCollaborators(groupId: string): Promise<GroupCollaboratorModel | any>;
+
+  getGroups(): Promise<GroupModel[] | any>;
 }
