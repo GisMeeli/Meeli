@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { GroupCollaboratorModel } from '../models/group-collaborator.model';
 import { GroupModel } from '../models/group.model';
+import { LoginRequestModel } from '../models/login-request.model';
 import { GroupsService } from '../services/groups.service';
 import { isErrorResponse } from '../utils/service-response-handler';
 
@@ -75,6 +76,22 @@ export function GroupsRouter(service: GroupsService): Router {
         } else {
           res.status(400).json(result);
         }
+      }
+    })
+    .post('/:hashtag/login', async (req: Request, res: Response) => {
+      const targetGroup = await service.getGroupByHashtag(req.params.hashtag);
+      if (targetGroup != undefined) {
+        let loginRequest = req.body as LoginRequestModel;
+        loginRequest.group = targetGroup.id;
+
+        const result = await service.login(loginRequest);
+        if (!isErrorResponse(result)) {
+          res.status(201).json(result);
+        } else {
+          res.sendStatus(401);
+        }
+      } else {
+        res.sendStatus(404);
       }
     });
 }

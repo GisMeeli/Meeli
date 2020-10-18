@@ -1,11 +1,14 @@
 import { Service } from '../abstractions/service';
 import { GroupCollaboratorModel } from '../models/group-collaborator.model';
+import { GroupMemberRoleModel } from '../models/group-member-role.model';
 import { GroupModel } from '../models/group.model';
+import { LoginRequestModel } from '../models/login-request.model';
 import { GroupsRepository } from '../repositories/groups.repository';
 import { buildErrorResponse } from '../utils/service-response-handler';
 import { GroupCollaboratorModelValidator } from '../validators/group-collaborator-model.validator';
 import { GroupModelValidator } from '../validators/group-model.validator';
 import { hasValidationErrors } from '../validators/validator-utils';
+import jwt from 'jsonwebtoken';
 
 export class GroupsService implements Service {
   constructor(private repository: GroupsRepository) {}
@@ -77,6 +80,47 @@ export class GroupsService implements Service {
 
   async getGroupIdByHashtag(hashtag: string): Promise<string> {
     return (await this.getGroupByHashtag(hashtag)).id;
+  }
+
+  async login(loginRequest: LoginRequestModel): Promise<any> {
+    if (loginRequest.role == GroupMemberRoleModel.Administrator) {
+      const group = await this.getGroupById(loginRequest.group);
+
+      if (group.adminKey == loginRequest.key) {
+        return {
+          name: 'admin',
+          token: this.generateSession(loginRequest.group, 'admin')
+        };
+      } else {
+        return buildErrorResponse({ message: 'Clave de administrador inválida.' });
+      }
+    } else {
+      const collaborators = await this.getGroupCollaborators(loginRequest.group);
+      if (collaborators.map((c) => c.key).includes(loginRequest.key)) {
+        const targetCollaborator = collaborators.find((c) => c.key === loginRequest.key);
+
+        return {
+          name: targetCollaborator.name,
+          token: this.generateSession(loginRequest.group, targetCollaborator.id)
+        };
+      }
+    }
+
+    return buildErrorResponse({ message: 'Clave de colaborador inválida.' });
+  }
+
+  private generateSession(groupId: string, memberId: string): any {
+    return jwt.sign(
+      {
+        group: groupId,
+        member: memberId,
+        creation: Date.now()
+      },
+      process.env.SERVER_JWT_SECRET,
+      {
+        expiresIn: '1d'
+      }
+    );
   }
 
   private formatGroup(group: GroupModel): GroupModel {
