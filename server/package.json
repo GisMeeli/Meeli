@@ -2,11 +2,11 @@
   "name": "meeli-server",
   "version": "1.0.0",
   "description": "Meeli server application.",
-  "main": "src/server.ts",
+  "main": "src/index.ts",
   "scripts": {
     "build": "tsc -p .",
-    "dev": "nodemon src/server.ts",
-    "start": "ts-node src/server.ts",
+    "dev": "nodemon src/index.ts",
+    "start": "ts-node src/index.ts",
     "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js"
   },
   "keywords": [],
