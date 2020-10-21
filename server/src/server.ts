@@ -1,13 +1,13 @@
 import * as http from 'http';
 import App from './app';
 import dotenv from 'dotenv';
-
+import * as ws from 'websocket';
 dotenv.config();
 
 const port = process.env.SERVER_PORT || 8000;
 App.set('port', port);
 
-http
+const server = http
   .createServer(App)
   .listen(port)
   .on('listening', (): void => {
@@ -28,4 +28,31 @@ http
       default:
         throw error;
     }
+  });
+
+new ws.server({
+  httpServer: server,
+  autoAcceptConnections: false
+})
+  .on('request', (request: ws.request) => {
+    console.log(request);
+    request.resource;
+    const connection = request.accept('meeli', request.origin);
+
+    connection
+      .on('message', (msg: ws.IMessage) => {
+        connection.sendUTF(JSON.stringify({ message: 'Data was received!' }));
+      })
+      .on('close', (code: number, description: string) => {
+        //
+      })
+      .on('error', (err: Error) => {
+        console.log(err);
+      });
+  })
+  .on('connect', (connection: ws.connection) => {
+    console.log('Connection done!');
+  })
+  .on('close', (connection: ws.connection, reason: number, desc: string) => {
+    console.log('Connection was closed!');
   });
