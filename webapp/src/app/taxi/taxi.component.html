@@ -1,0 +1,88 @@
+<mat-toolbar color="accent">
+    Meeli | TAXI
+  </mat-toolbar>
+  <section class="app-container">
+    <section class="container">
+        <mat-card class="card" style="height: 85%; min-height: 300px; min-width: 280px; position: relative;">
+            <div *ngIf="addingNew"
+                (click)="addingNew = false"
+                style="background-color: rgba(0, 0, 0, 0.251); width: 100%; height: 100%; position: absolute; z-index: 100; top: 0; left: 0; border-radius: 4px;">
+    
+                <mat-card (click)="$event.stopPropagation()" style="min-width: unset; width: calc(92% - 32px); margin: 20px 4%">
+    
+                    <h2>Ver grupo nuevo</h2>
+    
+                    <mat-button-toggle-group name="fontStyle" aria-label="Font Style"
+                        style="width: min-content; margin: 5px 10px" value="0" (change)="changeSelectedRol(group.value)"
+                        #group="matButtonToggleGroup">
+                        <mat-button-toggle value="0">Observador</mat-button-toggle>
+                        <mat-button-toggle value="1">Gestor</mat-button-toggle>
+                        <mat-button-toggle value="2">Administrador</mat-button-toggle>
+                    </mat-button-toggle-group>
+    
+    
+                    <div style="display: flex;">
+    
+                        <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto; margin-left: 2.5%;">
+                            <mat-label>Código de grupo</mat-label>
+                            <input matInput placeholder="Ex. 123" [(ngModel)]="groupHash" />
+                            <mat-icon matPrefix style="display: flex !important;">
+                                <div style="margin: auto;">#</div>
+                            </mat-icon>
+                        </mat-form-field>
+    
+                        <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto;"
+                            *ngIf="selectedRol == 1 || selectedRol == 2">
+                            <mat-label>Código de ingreso al grupo</mat-label>
+                            <input matInput placeholder="Ex. abc" [(ngModel)]="groupCode" />
+                            <mat-icon matPrefix>lock</mat-icon>
+                        </mat-form-field>
+                    </div>
+    
+                    <div style="display: flex;">
+                        <button mat-stroked-button style="margin: 10px 10px; width: 30%; min-width: min-content; "
+                            (click)="addingNew = false">Cancelar </button>
+                        <button mat-stroked-button style="margin: 10px 10px; width: 30%; min-width: min-content; "
+                            [disabled]="disabledSeeGroup" (click)="addGroup(groupHash)">Ver grupo </button>
+                    </div>
+    
+                </mat-card>
+            </div>
+    
+            <div style="display: flex; width: 100%;">
+                <button mat-stroked-button style="margin: 10px auto; width: 45%; min-width: min-content; "
+                    (click)="addingNew = true">Ver otro grupo </button>
+                <button mat-stroked-button style="margin: 10px auto; width: 45%; min-width: min-content; "
+                    (click)="createGroup()">Crear grupo</button>
+    
+            </div>
+    
+            <h3>Grupos</h3>
+    
+            <div
+                style="width: calc(100% - 50px); min-height: 100px; border-radius: 10px; border: 1px rgb(216, 216, 216) solid; padding: 10px 25px; overflow-y: auto;">
+                <div *ngFor="let group of groups" role="listitem"
+                    style="display: flex; justify-content: space-between; width: calc(100% - 30px); margin: 5px; padding: 10px; border-radius: 8px; background-color: rgb(245, 245, 245);">
+                    <div style="margin: auto 0; font-size: 15px; ">#{{group.hash}}</div>
+                    <div>
+                        <button mat-stroked-button *ngIf="group.role == 1" (click)="toogleVisibility(group)" matTooltip="Añadir registro"
+                            style="margin-right: 7px;" color="accent">
+                            <mat-icon>add_location_alt</mat-icon>
+                        </button>
+                        <button mat-stroked-button *ngIf="group.role == 2" (click)="toogleVisibility(group)" matTooltip="Administrar grupo"
+                            style="margin-right: 7px;" color="accent">
+                            <mat-icon>assignment</mat-icon>
+                        </button>
+                        <button mat-stroked-button (click)="toogleVisibility(group)" color="primary" matTooltip="Ocultar/Mostrar">
+                            <mat-icon>{{group.visible ? 'visibility' : 'visibility_off'}}</mat-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </mat-card>
+    
+    </section>
+    <app-map >
+      
+    </app-map>
+  </section>

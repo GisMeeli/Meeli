@@ -1,12 +1,12 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { DialogService } from '../services/dialog/dialog.service';
 
 @Component({
-  selector: 'app-sidenav',
-  templateUrl: './sidenav.component.html',
-  styleUrls: ['./sidenav.component.scss']
+  selector: 'app-mail',
+  templateUrl: './mail.component.html',
+  styleUrls: ['./mail.component.scss']
 })
-export class SidenavComponent implements OnInit {
+export class MailComponent implements OnInit {
 
   selectedRol = 0
 

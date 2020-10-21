@@ -6,30 +6,35 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from './material/material.module';
 import { RouterTestingModule } from '@angular/router/testing';
-import { SidenavComponent } from './sidenav/sidenav.component';
 import { MapComponent } from './map/map.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CreateGroupComponent } from './create-group/create-group.component';
 import { DialogService } from './services/dialog/dialog.service';
+import { MailComponent } from './mail/mail.component';
+import { TaxiComponent } from './taxi/taxi.component';
+import { RouterModule } from '@angular/router';
+import { HttpClientModule } from '@angular/common/http';
 
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    SidenavComponent,
     MapComponent,
-    CreateGroupComponent
+    CreateGroupComponent,
+    MailComponent,
+    TaxiComponent
   ],
   imports: [
     BrowserModule,
     CommonModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-    RouterTestingModule,
+    RouterModule,
     MaterialModule,
     FormsModule,
+    HttpClientModule,
   ],
   entryComponents: [
     CreateGroupComponent

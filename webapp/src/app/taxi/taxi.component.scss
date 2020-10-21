@@ -1,0 +1,39 @@
+.app-container {
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - 64px);
+    background-color: rgb(245, 245, 245);
+}
+
+@media only screen and (max-width: 599px) {
+    .app-container {
+        height: calc(100vh - 56px);
+    }
+}
+
+@import '../../styles.scss';
+
+
+.container{
+    width: 45vw;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+.card {
+    height: 80%;
+    width: 80%;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+::ng-deep .mat-button-toggle-appearance-standard .mat-button-toggle-label-content{
+    font-size: 12px;
+}
+
+::ng-deep .mat-button-toggle-checked {
+    background-color: mat-color($meeli-primary) !important;
+    color: white !important;
+}

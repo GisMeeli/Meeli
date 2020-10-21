@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { GroupsService } from '../services/groups/groups.service';
 
 @Component({
   selector: 'app-create-group',
@@ -33,13 +35,21 @@ export class CreateGroupComponent implements OnInit {
   addingUser = false
 
 
-  constructor() { }
+  constructor(private dialogRef: MatDialogRef<CreateGroupComponent>, private groupsService: GroupsService) { }
 
   ngOnInit(): void {
   }
 
   addUser(){
     this.addingUser = false
+  }
+  
+  onNoClick(){
+    this.dialogRef.close()
+  }
+
+  onYesClick(){
+    console.log("holis")
   }
 
 }
