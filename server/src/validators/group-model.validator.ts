@@ -12,8 +12,6 @@ export class GroupModelValidator extends AsyncValidator<GroupModel> {
     this.ruleFor('hashtag')
       .notEmpty()
       .withMessage('El hashtag no puede estar vacío.')
-      .matches(new RegExp('(d*[A-Za-z_]+w*)\b(?!;)'))
-      .withMessage('El formato de hashtag introducido no es válido.')
       .minLength(5)
       .withMessage('La lontitud mínima es de 5 caracteres')
       .maxLength(32)
