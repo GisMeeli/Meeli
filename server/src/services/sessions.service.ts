@@ -3,6 +3,8 @@ import { SessionModel } from '../models/session.model';
 import { SessionsRepository } from '../repositories/sessions.repository';
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
+import { GroupCategoryModel } from '../models/group-category.model';
+import { AuthenticatedSessionModel } from '../models/authenticated-session.model';
 
 export class SessionsService implements Service {
   constructor(private repository: SessionsRepository) {}
@@ -31,21 +33,22 @@ export class SessionsService implements Service {
     return result;
   }
 
-  async validateSession(token: string): Promise<{ successful: boolean; sessionId: string }> {
+  async authenticateSession(token: string): Promise<AuthenticatedSessionModel> {
     try {
       const validation = jwt.verify(token, process.env.SERVER_JWT_SECRET) as any;
       const session = await this.getSession(validation.session);
 
-      return {
-        successful: session != undefined,
-        sessionId: session != undefined ? session.id : undefined
-      };
+      if (session != undefined) {
+        return {
+          sessionId: session.id,
+          groupId: session.group,
+          groupCategory: undefined,
+          memberId: session.member
+        } as AuthenticatedSessionModel;
+      } else return undefined;
     } catch (err) {
       console.log(err);
-      return {
-        successful: false,
-        sessionId: null
-      };
+      return undefined;
     }
   }
 }

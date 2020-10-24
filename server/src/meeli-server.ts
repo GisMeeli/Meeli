@@ -89,16 +89,18 @@ export class MeeliServer {
     })
       .on('request', async (request: ws.request) => {
         const token = request.resource.replace('/', '');
-        const session = await this.sessionsService.validateSession(token);
+        const auth = await this.sessionsService.authenticateSession(token);
 
-        if (!session.successful) {
+        if (auth == undefined) {
           request.reject(401, 'Invalid session.');
         } else {
+          auth.groupCategory = (await this.groupsService.getGroupById(auth.groupId)).category;
+
           const connection = request.accept('meeli', request.origin);
 
           connection
             .on('message', async (msg: ws.IMessage) => {
-              const result = await this.meeliService.handle(session.sessionId, msg);
+              const result = await this.meeliService.handle(auth, msg);
 
               connection.sendUTF(JSON.stringify(result));
               //connection.sendUTF(JSON.stringify({ message: 'Data was received!' }));
