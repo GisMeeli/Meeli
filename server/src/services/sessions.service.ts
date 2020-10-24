@@ -30,4 +30,17 @@ export class SessionsService implements Service {
     const result = await this.repository.delete(id);
     return result;
   }
+
+  async validateSession(token: string): Promise<boolean> {
+    try {
+      const validation = JSON.parse(jwt.verify(token, process.env.SERVER_JWT_SECRET) as string);
+      const session = this.getSession(validation.session);
+
+      if (session != undefined) {
+        return true;
+      }
+    } catch (err) {
+      return false;
+    }
+  }
 }

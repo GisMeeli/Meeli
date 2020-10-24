@@ -1,6 +1,7 @@
 import express, { Application, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import { GroupsRouter } from './routes/groups.route';
+import { TestsRouter } from './routes/tests.route';
 import { GroupsService } from './services/groups.service';
 import { GroupsDao } from './data-sources/typeorm/dao/groups.dao';
 import morgan from 'morgan';
@@ -22,6 +23,8 @@ export class MeeliServer {
   }
 
   private setupRestServer() {
+    const groupsService = new GroupsService(new GroupsDao());
+    const sessionsService = new SessionsService(new SessionsDao());
     this.app = express()
       .use(bodyParser.json())
       .use(morgan('dev'))
@@ -38,7 +41,8 @@ export class MeeliServer {
       .get('/', (req: Request, res: Response) => {
         res.send('<h1>Hello, world!</h1>');
       })
-      .use('/groups', GroupsRouter(new GroupsService(new GroupsDao()), new SessionsService(new SessionsDao())));
+      .use('/groups', GroupsRouter(groupsService, sessionsService))
+      .use('/tests', TestsRouter(groupsService, sessionsService));
   }
 
   private setupHttpServer() {

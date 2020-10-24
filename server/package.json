@@ -20,8 +20,8 @@
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.9.1",
     "pg": "^8.3.0",
-    "redis": "^3.0.2",
     "reflect-metadata": "^0.1.13",
+    "tedis": "^0.1.12",
     "typeorm": "^0.2.25",
     "uuid": "^8.3.1",
     "websocket": "^1.0.32"
@@ -32,7 +32,6 @@
     "@types/jsonwebtoken": "^8.5.0",
     "@types/morgan": "^1.7.37",
     "@types/node": "^13.5.1",
-    "@types/redis": "^2.8.28",
     "@types/uuid": "^8.3.0",
     "@types/websocket": "^1.0.1",
     "debug": "^4.1.1",
