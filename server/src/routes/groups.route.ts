@@ -3,9 +3,10 @@ import { GroupCollaboratorModel } from '../models/group-collaborator.model';
 import { GroupModel } from '../models/group.model';
 import { LoginRequestModel } from '../models/login-request.model';
 import { GroupsService } from '../services/groups.service';
+import { SessionsService } from '../services/sessions.service';
 import { isErrorResponse } from '../utils/service-response-handler';
 
-export function GroupsRouter(service: GroupsService): Router {
+export function GroupsRouter(service: GroupsService, sessionsService: SessionsService): Router {
   return Router()
     .get('/', async (req: Request, res: Response) => {
       const groups = await service.getGroups();
@@ -84,9 +85,14 @@ export function GroupsRouter(service: GroupsService): Router {
         let loginRequest = req.body as LoginRequestModel;
         loginRequest.group = targetGroup.id;
 
-        const result = await service.login(loginRequest);
-        if (!isErrorResponse(result)) {
-          res.status(201).json(result);
+        const loginResult = await service.login(loginRequest);
+        if (!isErrorResponse(loginResult)) {
+          const sessionToken = await sessionsService.createSession(loginResult.groupId, loginResult.collaboratorId);
+
+          res.status(201).json({
+            name: loginResult.name,
+            token: sessionToken
+          });
         } else {
           res.sendStatus(401);
         }

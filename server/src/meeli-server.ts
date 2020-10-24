@@ -6,6 +6,8 @@ import { GroupsDao } from './data-sources/typeorm/dao/groups.dao';
 import morgan from 'morgan';
 import * as http from 'http';
 import * as ws from 'websocket';
+import { SessionsService } from './services/sessions.service';
+import { SessionsDao } from './data-sources/redis/sessions.dao';
 
 export class MeeliServer {
   private app: Application;
@@ -36,7 +38,7 @@ export class MeeliServer {
       .get('/', (req: Request, res: Response) => {
         res.send('<h1>Hello, world!</h1>');
       })
-      .use('/groups', GroupsRouter(new GroupsService(new GroupsDao())));
+      .use('/groups', GroupsRouter(new GroupsService(new GroupsDao()), new SessionsService(new SessionsDao())));
   }
 
   private setupHttpServer() {

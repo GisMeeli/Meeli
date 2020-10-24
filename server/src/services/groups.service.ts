@@ -82,15 +82,20 @@ export class GroupsService implements Service {
     return (await this.getGroupByHashtag(hashtag)).id;
   }
 
-  async login(loginRequest: LoginRequestModel): Promise<any> {
+  async login(loginRequest: LoginRequestModel): Promise<{ groupId: string; collaboratorId: string; name: string }> {
     if (loginRequest.role == GroupMemberRoleModel.Administrator) {
       const group = await this.getGroupById(loginRequest.group);
 
       if (group.adminKey == loginRequest.key) {
         return {
-          name: 'admin',
-          token: this.generateSession(loginRequest.group, 'admin')
+          groupId: loginRequest.group,
+          collaboratorId: 'admin',
+          name: 'admin'
         };
+        // return {
+        //   name: 'admin',
+        //   token: this.generateSession(loginRequest.group, 'admin')
+        // };
       } else {
         return buildErrorResponse({ message: 'Clave de administrador inválida.' });
       }
@@ -98,17 +103,22 @@ export class GroupsService implements Service {
       const collaborators = await this.getGroupCollaborators(loginRequest.group);
       if (collaborators.map((c) => c.key).includes(loginRequest.key)) {
         const targetCollaborator = collaborators.find((c) => c.key === loginRequest.key);
-
         return {
-          name: targetCollaborator.name,
-          token: this.generateSession(loginRequest.group, targetCollaborator.id)
+          groupId: loginRequest.group,
+          collaboratorId: targetCollaborator.id,
+          name: targetCollaborator.name
         };
+        // return {
+        //   name: targetCollaborator.name,
+        //   token: this.generateSession(loginRequest.group, targetCollaborator.id)
+        // };
       }
     }
 
     return buildErrorResponse({ message: 'Clave de colaborador inválida.' });
   }
 
+  /*
   private generateSession(groupId: string, memberId: string): any {
     return jwt.sign(
       {
@@ -122,6 +132,7 @@ export class GroupsService implements Service {
       }
     );
   }
+  */
 
   private formatGroup(group: GroupModel): GroupModel {
     group.adminKey = undefined;
