@@ -31,16 +31,21 @@ export class SessionsService implements Service {
     return result;
   }
 
-  async validateSession(token: string): Promise<boolean> {
+  async validateSession(token: string): Promise<{ successful: boolean; sessionId: string }> {
     try {
-      const validation = JSON.parse(jwt.verify(token, process.env.SERVER_JWT_SECRET) as string);
-      const session = this.getSession(validation.session);
+      const validation = jwt.verify(token, process.env.SERVER_JWT_SECRET) as any;
+      const session = await this.getSession(validation.session);
 
-      if (session != undefined) {
-        return true;
-      }
+      return {
+        successful: session != undefined,
+        sessionId: session != undefined ? session.id : undefined
+      };
     } catch (err) {
-      return false;
+      console.log(err);
+      return {
+        successful: false,
+        sessionId: null
+      };
     }
   }
 }

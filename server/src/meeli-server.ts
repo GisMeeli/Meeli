@@ -16,15 +16,23 @@ export class MeeliServer {
   private wsServer: ws.server;
   private port = process.env.SERVER_PORT || 8000;
 
+  // Servicios
+  private groupsService: GroupsService;
+  private sessionsService: SessionsService;
+
   constructor() {
+    this.setupServices();
     this.setupRestServer();
     this.setupHttpServer();
     this.setupWSServer();
   }
 
+  private setupServices() {
+    this.groupsService = new GroupsService(new GroupsDao());
+    this.sessionsService = new SessionsService(new SessionsDao());
+  }
+
   private setupRestServer() {
-    const groupsService = new GroupsService(new GroupsDao());
-    const sessionsService = new SessionsService(new SessionsDao());
     this.app = express()
       .use(bodyParser.json())
       .use(morgan('dev'))
@@ -41,8 +49,8 @@ export class MeeliServer {
       .get('/', (req: Request, res: Response) => {
         res.send('<h1>Hello, world!</h1>');
       })
-      .use('/groups', GroupsRouter(groupsService, sessionsService))
-      .use('/tests', TestsRouter(groupsService, sessionsService));
+      .use('/groups', GroupsRouter(this.groupsService, this.sessionsService))
+      .use('/tests', TestsRouter(this.groupsService, this.sessionsService));
   }
 
   private setupHttpServer() {
@@ -75,21 +83,26 @@ export class MeeliServer {
       httpServer: this.httpServer,
       autoAcceptConnections: false
     })
-      .on('request', (request: ws.request) => {
-        console.log(request);
-        request.resource;
-        const connection = request.accept('meeli', request.origin);
+      .on('request', async (request: ws.request) => {
+        const token = request.resource.replace('/', '');
+        const session = await this.sessionsService.validateSession(token);
 
-        connection
-          .on('message', (msg: ws.IMessage) => {
-            connection.sendUTF(JSON.stringify({ message: 'Data was received!' }));
-          })
-          .on('close', (code: number, description: string) => {
-            //
-          })
-          .on('error', (err: Error) => {
-            console.log(err);
-          });
+        if (!session.successful) {
+          request.reject(401, 'Invalid session.');
+        } else {
+          const connection = request.accept('meeli', request.origin);
+
+          connection
+            .on('message', (msg: ws.IMessage) => {
+              connection.sendUTF(JSON.stringify({ message: 'Data was received!' }));
+            })
+            .on('close', (code: number, description: string) => {
+              //
+            })
+            .on('error', (err: Error) => {
+              console.log(err);
+            });
+        }
       })
       .on('connect', (connection: ws.connection) => {
         console.log('Connection done!');
