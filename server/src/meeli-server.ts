@@ -9,6 +9,8 @@ import * as http from 'http';
 import * as ws from 'websocket';
 import { SessionsService } from './services/sessions.service';
 import { SessionsDao } from './data-sources/redis/sessions.dao';
+import { MeeliService } from './services/meeli.service';
+import { MeeliDao } from './data-sources/pg/meeli.dao';
 
 export class MeeliServer {
   private app: Application;
@@ -18,6 +20,7 @@ export class MeeliServer {
 
   // Servicios
   private groupsService: GroupsService;
+  private meeliService: MeeliService;
   private sessionsService: SessionsService;
 
   constructor() {
@@ -29,6 +32,7 @@ export class MeeliServer {
 
   private setupServices() {
     this.groupsService = new GroupsService(new GroupsDao());
+    this.meeliService = new MeeliService(new MeeliDao());
     this.sessionsService = new SessionsService(new SessionsDao());
   }
 
@@ -93,8 +97,11 @@ export class MeeliServer {
           const connection = request.accept('meeli', request.origin);
 
           connection
-            .on('message', (msg: ws.IMessage) => {
-              connection.sendUTF(JSON.stringify({ message: 'Data was received!' }));
+            .on('message', async (msg: ws.IMessage) => {
+              const result = await this.meeliService.handle(session.sessionId, msg);
+
+              connection.sendUTF(JSON.stringify(result));
+              //connection.sendUTF(JSON.stringify({ message: 'Data was received!' }));
             })
             .on('close', (code: number, description: string) => {
               //
