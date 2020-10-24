@@ -13,6 +13,8 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
+    depends_on: 
+      - redis
     environment:
       SERVER_JWT_SECRET: ${SERVER_JWT_SECRET}
       SERVER_DB_HOST: ${SERVER_DB_HOST}
@@ -21,6 +23,9 @@ services:
       SERVER_DB_PASSWORD: ${SERVER_DB_PASSWORD}
       SERVER_DB_PORT: ${SERVER_DB_PORT}
       SERVER_PORT: ${SERVER_PORT}
+      SERVER_REDIS_HOST: ${SERVER_REDIS_HOST}
+      SERVER_REDIS_PORT: ${SERVER_REDIS_PORT}
+      SERVER_REDIS_PASSWORD: ${SERVER_REDIS_PASSWORD}
     ports:
       - '${SERVER_PORT}:${SERVER_PORT}'
     networks:
