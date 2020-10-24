@@ -13,6 +13,7 @@ export class SessionsDao implements SessionsRepository {
     console.log(`Session added: ${id}`);
 
     RedisConnectionManager.getRedisConnection().putTedis(tedis);
+    tedis.close();
   }
 
   delete(id: string): Promise<boolean> {
@@ -22,11 +23,13 @@ export class SessionsDao implements SessionsRepository {
   async get(id: string): Promise<SessionModel> {
     const tedis = await RedisConnectionManager.getRedisConnection().getTedis();
     const data: string = (await tedis.get(id)) as string;
-    
+
+    tedis.close();
+
     if (data == null || data == undefined) {
       return undefined;
     }
-    
+
     const session = JSON.parse(data) as SessionModel;
     session.id = id;
 
