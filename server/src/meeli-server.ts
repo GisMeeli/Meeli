@@ -32,7 +32,7 @@ export class MeeliServer {
 
   private setupServices() {
     this.groupsService = new GroupsService(new GroupsDao());
-    this.meeliService = new MeeliService(new MeeliDao());
+    this.meeliService = new MeeliService(new MeeliDao(), this.groupsService);
     this.sessionsService = new SessionsService(new SessionsDao());
   }
 
@@ -97,6 +97,8 @@ export class MeeliServer {
           auth.groupCategory = (await this.groupsService.getGroupById(auth.groupId)).category;
 
           const connection = request.accept('meeli', request.origin);
+
+          this.meeliService.initializeMeeliSession(auth);
 
           connection
             .on('message', async (msg: ws.IMessage) => {

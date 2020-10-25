@@ -64,6 +64,10 @@ export class GroupsService implements Service {
     return result != undefined ? this.formatGroup(result) : undefined;
   }
 
+  async getGroupCollaborator(collaboratorId: string): Promise<GroupCollaboratorModel> {
+    return this.repository.getGroupCollaborator(collaboratorId);
+  }
+
   async getGroupCollaborators(groupId: string): Promise<GroupCollaboratorModel[]> {
     return await this.repository.getGroupCollaborators(groupId);
   }

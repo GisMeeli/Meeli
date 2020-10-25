@@ -61,6 +61,14 @@ export class GroupsDao implements GroupsRepository {
     return 0 < results.length ? results[0] : undefined;
   }
 
+  async getGroupCollaborator(collaboratorId: string): Promise<GroupCollaboratorModel> {
+    return await (await getDatabaseConnection())
+      .getRepository(GroupCollaboratorEntity)
+      .createQueryBuilder('collaborator')
+      .where('collaborator.id = :value', { value: collaboratorId })
+      .getOne();
+  }
+
   async getGroupCollaborators(groupId: string) {
     const results = await (await getDatabaseConnection())
       .getRepository(GroupCollaboratorEntity)

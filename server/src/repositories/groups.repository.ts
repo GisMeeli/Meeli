@@ -13,6 +13,8 @@ export interface GroupsRepository extends Repository {
 
   getGroupById(id: string): Promise<GroupModel | any>;
 
+  getGroupCollaborator(collaboratorId: string): Promise<GroupCollaboratorModel>;
+
   getGroupCollaborators(groupId: string): Promise<GroupCollaboratorModel | any>;
 
   getGroups(): Promise<GroupModel[] | any>;
