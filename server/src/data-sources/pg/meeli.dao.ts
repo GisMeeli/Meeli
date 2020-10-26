@@ -14,7 +14,7 @@ export class MeeliDao implements MeeliRepository {
     auth: AuthenticatedSessionModel,
     collaboratorAttributes: GroupCollaboratorAttributesModel
   ): Promise<void> {
-    const pg = PostgresConnectionManager.getPool();
+    const pg = await PostgresConnectionManager.getPool().connect();
 
     await pg.query(
       `INSERT INTO ${this.getSchema(
@@ -31,18 +31,18 @@ export class MeeliDao implements MeeliRepository {
       ]
     );
 
-    await pg.end();
+    pg.release();
   }
 
   async updateCollaboratorLocation(auth: AuthenticatedSessionModel, location: MeeliPoint): Promise<any> {
-    const pg = PostgresConnectionManager.getPool();
+    const pg = await PostgresConnectionManager.getPool().connect();
 
-    await pg.query(`UPDATE ${this.getSchema(auth)}.realtime SET geom = ST_MakePoint($1, $2) WHERE session = $3;`, [
-      location.lat,
+    await pg.query(`UPDATE ${this.getSchema(auth)}.realtime SET geom = ST_SetSRID(ST_MakePoint($1, $2), 4326) WHERE session = $3;`, [
       location.lon,
+      location.lat,
       auth.sessionId
     ]);
 
-    await pg.end();
+    pg.release();
   }
 }

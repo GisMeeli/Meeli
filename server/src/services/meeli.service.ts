@@ -8,13 +8,13 @@ import { GroupsService } from './groups.service';
 export class MeeliService implements Service {
   constructor(private repository: MeeliRepository, private groupsService: GroupsService) {}
 
-  handle(auth: AuthenticatedSessionModel, msg: ws.IMessage): any {
+  async handle(auth: AuthenticatedSessionModel, msg: ws.IMessage): Promise<any> {
     const req = JSON.parse(msg.utf8Data) as MeeliRequest;
     let res: any;
 
     switch (req.action) {
       case MeeliAction.UpdateLocation:
-        this.updateCollaboratorLocation(auth, req.data as MeeliPoint);
+        await this.updateCollaboratorLocation(auth, req.data as MeeliPoint);
 
         res = { result: 'done' };
         break;
