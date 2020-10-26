@@ -6,7 +6,7 @@ import { AuthenticatedSessionModel } from '../models/authenticated-session.model
 import { GroupsService } from './groups.service';
 
 export class MeeliService implements Service {
-  constructor(private repository: MeeliRepository, private groupsService:GroupsService) {}
+  constructor(private repository: MeeliRepository, private groupsService: GroupsService) {}
 
   handle(auth: AuthenticatedSessionModel, msg: ws.IMessage): any {
     const req = JSON.parse(msg.utf8Data) as MeeliRequest;
@@ -14,10 +14,9 @@ export class MeeliService implements Service {
 
     switch (req.action) {
       case MeeliAction.UpdateLocation:
-        const data = req.data as MeeliPoint;
-        console.log(data);
+        this.updateCollaboratorLocation(auth, req.data as MeeliPoint);
 
-        res = { a: 'hola' };
+        res = { result: 'done' };
         break;
     }
 
@@ -28,6 +27,10 @@ export class MeeliService implements Service {
     const collaborator = await this.groupsService.getGroupCollaborator(auth.memberId);
     await this.repository.addCollaboratorSession(auth, collaborator.customAttributes);
 
-    console.log("Session started at GIS!");
+    console.log('Session started at GIS!');
+  }
+
+  async updateCollaboratorLocation(auth: AuthenticatedSessionModel, point: MeeliPoint): Promise<void> {
+    await this.repository.updateCollaboratorLocation(auth, point);
   }
 }
