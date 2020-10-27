@@ -12,7 +12,7 @@
 &nbsp;
 <h3 align="center">
   Walter Andrey Benavides Figueroa <br>
-  Brandon Cruz <br>
+  Brandon Cruz Brenes<br>
   Miguel Rivas <br>
 </h3>
 &nbsp;
