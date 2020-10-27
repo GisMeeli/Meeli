@@ -6,8 +6,8 @@ export const environment = {
   production: false
 };
 
-export const API_URL = "http://meeli.sytes.net:8000"
-export const WS_URL = "ws://meeli.sytes.net:8000"
+export const API_URL = "https://meeli.sytes.net:8001"
+export const WS_URL = "wss://meeli.sytes.net:8001"
 
 /*
  * For easier debugging in development mode, you can import the following file
