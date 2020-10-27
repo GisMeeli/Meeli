@@ -17,6 +17,7 @@ import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { TaxiCollaboratorComponent } from './taxi-collaborator/taxi-collaborator.component';
 import { MailCollaboratorComponent } from './mail-collaborator/mail-collaborator.component';
+import { AdminGroupComponent } from './admin-group/admin-group.component';
 
 
 
@@ -28,7 +29,8 @@ import { MailCollaboratorComponent } from './mail-collaborator/mail-collaborator
     MailComponent,
     TaxiComponent,
     TaxiCollaboratorComponent,
-    MailCollaboratorComponent
+    MailCollaboratorComponent,
+    AdminGroupComponent
   ],
   imports: [
     BrowserModule,

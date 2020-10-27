@@ -1,8 +1,5 @@
-<div style="display: flex; flex-direction: column;">
-    <h2>Crear nuevo grupo</h2>
-
-    <div *ngIf="addingUser"
-        style="position: absolute; background-color: rgba(0, 0, 0, 0.25); top: 0; left: 0; z-index: 100; width: 100%; height: 100%;"
+<div *ngIf="addingUser"
+        style="position: absolute; background-color: rgba(0, 0, 0, 0.25); top: 0; left: 0; z-index: 100; width: 100%; height: 90%;"
         (click)="addingUser = false">
         <mat-card (click)="$event.stopPropagation()" style="min-width: unset; width: calc(92% - 32px); margin: 20px 4%">
 
@@ -63,46 +60,16 @@
 
     </div>
 
-    <form>
+<h3>Administrar usuarios de #{{hashtag}}</h3>
 
-        <div style="display: flex;">
-            
-            <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto;  max-width: 300px;">
-                <mat-label>Nombre del grupo</mat-label>
-                <input [(ngModel)]="group.name" [ngModelOptions]="{standalone: true}" matInput placeholder="" />
-            </mat-form-field>
-
-            <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto; max-width: 300px;">
-                <mat-label>Descripción del grupo</mat-label>
-                <input [(ngModel)]="group.description" [ngModelOptions]="{standalone: true}" matInput placeholder="" />
-            </mat-form-field>
-        </div>
-        
-        <div style="display: flex;">
-            <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto; max-width: 300px;">
-                <mat-label>Hash del grupo</mat-label>
-                <input [(ngModel)]="group.hashtag" [ngModelOptions]="{standalone: true}" matInput placeholder="Ex. 1234" />
-                <mat-icon matPrefix style="display: flex !important;">
-                    <div style="margin: auto;">#</div>
-                </mat-icon>
-            </mat-form-field>
-
-            <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto; max-width: 300px;">
-                <mat-label>Contraseña de administración</mat-label>
-                <input [(ngModel)]="group.adminKey" [ngModelOptions]="{standalone: true}" matInput placeholder="Ex. 1234" />
-                <mat-icon matPrefix style="display: flex !important;">
-                    lock
-                </mat-icon>
-            </mat-form-field>
-        </div>
-
-
-        <div style="display: flex; justify-content: space-around;">
-            <button mat-stroked-button style="margin: 10px 10px; width: 30%; min-width: min-content; "
-                (click)="onNoClick()">Cancelar </button>
-            <button mat-stroked-button style="margin: 10px 10px; width: 30%; min-width: min-content; "
-                (click)="onYesClick()" [disabled]="false" color="accent">Crear grupo </button>
-        </div>
-
-    </form>
-</div>
+<div id="global">
+    <div id=nombres>
+        <mat-selection-list #listaGestores (selectionChange)="onGroupsChange(listaGestores.selectedOptions.selected)">
+            <mat-list-option *ngFor="let gestor of users" [value]="gestor">
+              Name: {{gestor.name}} | Key: {{gestor.key}}
+            </mat-list-option>
+        </mat-selection-list>     
+    </div>        
+</div>        
+<button mat-stroked-button style="min-width: min-content; margin: auto 0; height: min-content;" (click)="addingUser = !addingUser" color="primary">Añadir gestor</button>
+<button (click)="eliminarGestor()" mat-raised-button [disabled]="disableSelect.value" color="accent">Eliminar Gestor</button>

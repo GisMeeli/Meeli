@@ -32,16 +32,46 @@ export class CreateGroupComponent implements OnInit {
     // {name: "Nombre 6", accessCode: "estecode"},
   ]
 
+  public group;
+  public collaborator;
   addingUser = false
 
 
-  constructor(private dialogRef: MatDialogRef<CreateGroupComponent>, private groupsService: GroupsService) { }
+  constructor(private dialogRef: MatDialogRef<CreateGroupComponent>, private groupsService: GroupsService) { 
+    this.group = {
+      hashtag: '',
+      name: '',
+      description: '',
+      adminKey: '',
+      category: 1
+    }
+    this.collaborator = {
+      name: '',
+      key: '',
+	    customAttributes: {
+		    driverName: '',
+		    vehiclePlate: '',
+		    vehicleBrand: '',
+		    vehicleModel: ''
+	    }
+    }
+  }
 
   ngOnInit(): void {
   }
 
   addUser(){
     this.addingUser = false
+    console.log(JSON.stringify(this.collaborator))
+    this.groupsService.createCollaborator(this.collaborator, this.group.hashtag).subscribe(
+      data => {
+        this.users.push({name: data.valueOf()['name'], key: data.valueOf()['key']})
+        console.log(JSON.stringify(data))
+      },
+      error => {
+        console.log('Error en la consulta');
+      }
+    );
   }
   
   onNoClick(){
@@ -49,7 +79,15 @@ export class CreateGroupComponent implements OnInit {
   }
 
   onYesClick(){
-    console.log("holis")
+    console.log(JSON.stringify(this.group))
+    this.groupsService.createGroup(this.group).subscribe(
+      data => {
+        console.log(JSON.stringify(data))
+      },
+      error => {
+        console.log('Error en la consulta');
+      }
+    );
   }
 
 }

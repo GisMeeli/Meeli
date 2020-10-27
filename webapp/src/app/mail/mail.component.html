@@ -19,8 +19,8 @@
                         style="width: min-content; margin: 5px 10px" value="0" (change)="changeSelectedRol(group.value)"
                         #group="matButtonToggleGroup">
                         <mat-button-toggle value="0">Observador</mat-button-toggle>
-                        <mat-button-toggle value="1">Gestor</mat-button-toggle>
-                        <mat-button-toggle value="2">Administrador</mat-button-toggle>
+                        <mat-button-toggle value="2">Gestor</mat-button-toggle>
+                        <mat-button-toggle value="1">Administrador</mat-button-toggle>
                     </mat-button-toggle-group>
     
     
@@ -28,7 +28,7 @@
     
                         <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto; margin-left: 2.5%;">
                             <mat-label>Código de grupo</mat-label>
-                            <input matInput placeholder="Ex. 123" [(ngModel)]="groupHash" />
+                            <input [(ngModel)]="groupHash" [ngModelOptions]="{standalone: true}" matInput placeholder="Ex. 123" [(ngModel)]="groupHash" />
                             <mat-icon matPrefix style="display: flex !important;">
                                 <div style="margin: auto;">#</div>
                             </mat-icon>
@@ -64,15 +64,15 @@
     
             <div
                 style="width: calc(100% - 50px); min-height: 100px; border-radius: 10px; border: 1px rgb(216, 216, 216) solid; padding: 10px 25px; overflow-y: auto;">
-                <div *ngFor="let group of groups" role="listitem"
+                <div *ngFor="let group of this.groupsService.groups" role="listitem"
                     style="display: flex; justify-content: space-between; width: calc(100% - 30px); margin: 5px; padding: 10px; border-radius: 8px; background-color: rgb(245, 245, 245);">
-                    <div style="margin: auto 0; font-size: 15px; ">#{{group.hash}}</div>
+                    <div style="margin: auto 0; font-size: 15px; ">#{{group.hashtag}}</div>
                     <div>
-                        <button mat-stroked-button *ngIf="group.role == 1" (click)="manageGroup(group)" matTooltip="Gestionar grupo"
+                        <button mat-stroked-button *ngIf="group.role == 2" (click)="manageGroup(group)" matTooltip="Gestionar grupo"
                             style="margin-right: 7px;" color="accent">
                             <mat-icon>add_location_alt</mat-icon>
                         </button>
-                        <button mat-stroked-button *ngIf="group.role == 2" (click)="toogleVisibility(group)" matTooltip="Administrar grupo"
+                        <button mat-stroked-button *ngIf="group.role == 1" (click)="administrarGrupo(group.hashtag)" matTooltip="Administrar grupo"
                             style="margin-right: 7px;" color="accent">
                             <mat-icon>assignment</mat-icon>
                         </button>
@@ -85,7 +85,7 @@
         </mat-card>
     
     </section>
-    <app-map [groups]="groups" category="1">
+    <app-map [groups]="groupsService.groups" category="1">
       
     </app-map>
   </section>
