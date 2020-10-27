@@ -6,17 +6,21 @@ import { GroupsService } from './services/groups.service';
 import { GroupsDao } from './data-sources/typeorm/dao/groups.dao';
 import morgan from 'morgan';
 import * as http from 'http';
+import * as https from 'https';
 import * as ws from 'websocket';
 import { SessionsService } from './services/sessions.service';
 import { SessionsDao } from './data-sources/redis/sessions.dao';
 import { MeeliService } from './services/meeli.service';
 import { MeeliDao } from './data-sources/pg/meeli.dao';
+import fs from 'fs';
 
 export class MeeliServer {
   private app: Application;
   private httpServer: http.Server;
+  private httpsServer: https.Server;
   private wsServer: ws.server;
-  private port = process.env.SERVER_PORT || 8000;
+  private httpPort = process.env.SERVER_HTTP_PORT || 8000;
+  private httpsPort = process.env.SERVER_HTTPS_PORT || 8001;
 
   // Servicios
   private groupsService: GroupsService;
@@ -27,6 +31,7 @@ export class MeeliServer {
     this.setupServices();
     this.setupRestServer();
     this.setupHttpServer();
+    this.setupHttpsServer();
     this.setupWSServer();
   }
 
@@ -60,14 +65,52 @@ export class MeeliServer {
   private setupHttpServer() {
     this.httpServer = http
       .createServer(this.app)
-      .listen(this.port)
+      .listen(this.httpPort)
       .on('listening', (): void => {
-        console.log(`Server listening on port ${this.port}`);
+        console.log(`Server listening on port ${this.httpPort}`);
       })
       .on('error', (error: NodeJS.ErrnoException): void => {
         if (error.syscall !== 'listen') throw error;
 
-        let bind = typeof this.port === 'string' ? 'Pipe ' + this.port : 'Port ' + this.port;
+        let bind = typeof this.httpPort === 'string' ? 'Pipe ' + this.httpPort : 'Port ' + this.httpPort;
+
+        switch (error.code) {
+          case 'EACCES':
+            console.error(`${bind} requires elevated privileges`);
+            process.exit(1);
+          case 'EADDRINUSE':
+            console.error(`${bind} is already in use`);
+            process.exit(1);
+          default:
+            throw error;
+        }
+      });
+  }
+
+  private setupHttpsServer() {
+    //const certsLocation = '/etc/letsencrypt/live/meeli.sytes.net';
+    const certsLocation = 'certs';
+    const privateKey = fs.readFileSync(`${certsLocation}/privkey.pem`, 'utf8');
+    const certificate = fs.readFileSync(`${certsLocation}/cert.pem`, 'utf8');
+    const ca = fs.readFileSync(`${certsLocation}/chain.pem`, 'utf8');
+
+    this.httpsServer = https
+      .createServer(
+        {
+          key: privateKey,
+          cert: certificate,
+          ca: ca
+        },
+        this.app
+      )
+      .listen(this.httpsPort)
+      .on('listening', (): void => {
+        console.log(`Server listening on port ${this.httpsPort}`);
+      })
+      .on('error', (error: NodeJS.ErrnoException): void => {
+        if (error.syscall !== 'listen') throw error;
+
+        let bind = typeof this.httpsPort === 'string' ? 'Pipe ' + this.httpsPort : 'Port ' + this.httpsPort;
 
         switch (error.code) {
           case 'EACCES':
@@ -84,7 +127,7 @@ export class MeeliServer {
 
   private setupWSServer() {
     this.wsServer = new ws.server({
-      httpServer: this.httpServer,
+      httpServer: [this.httpServer, this.httpsServer],
       autoAcceptConnections: false
     })
       .on('request', async (request: ws.request) => {
@@ -105,7 +148,6 @@ export class MeeliServer {
               const result = await this.meeliService.handle(auth, msg);
 
               connection.sendUTF(JSON.stringify(result));
-              //connection.sendUTF(JSON.stringify({ message: 'Data was received!' }));
             })
             .on('close', (code: number, description: string) => {
               //
