@@ -7,7 +7,7 @@ node_js:
 git: 
   depth: 3
 script:
-  - cd .\webapp\ && yarn build
+  - cd webapp && yarn build
 deploy:
   provider: pages
   edge: true
