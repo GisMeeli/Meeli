@@ -15,6 +15,7 @@ import { MailComponent } from './mail/mail.component';
 import { TaxiComponent } from './taxi/taxi.component';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
+import { AdminGroupComponent } from './admin-group/admin-group.component';
 
 
 
@@ -24,7 +25,8 @@ import { HttpClientModule } from '@angular/common/http';
     MapComponent,
     CreateGroupComponent,
     MailComponent,
-    TaxiComponent
+    TaxiComponent,
+    AdminGroupComponent
   ],
   imports: [
     BrowserModule,
