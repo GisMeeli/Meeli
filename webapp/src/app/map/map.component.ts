@@ -1,5 +1,5 @@
 import { ArrayType } from '@angular/compiler';
-import { AfterViewChecked, AfterViewInit, Component, OnInit } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, Input, OnInit } from '@angular/core';
 import { range } from 'rxjs';
 import TilesUtils from '../utils/tiles.utils';
 
@@ -13,12 +13,16 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   constructor() { }
 
+  @Input() groups : any[];
+  @Input() category : Number;
+
+
   ngAfterViewInit(): void {
     this.refreshTile()
     this.setOnCurrentPosition()
     this.svg.element = document.getElementById("map")
-    console.log(this.svg.element.clientHeight)
-    console.log(this.svg.element.clientWidth)
+    // console.log(this.svg.element.clientHeight)
+    // console.log(this.svg.element.clientWidth)
 
     let max = Math.min(this.svg.element.parentElement.clientHeight, this.svg.element.parentElement.clientWidth)
 
@@ -28,7 +32,7 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    console.log(TilesUtils.project(9.7489, -83.753428, this.TILE_SIZE))
+    this.setIntervals()
   }
 
   circleClick(){
@@ -36,7 +40,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     
   }
 
-  tile = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+  tile = "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
 
   zoom : number = 13
 
@@ -52,7 +56,14 @@ export class MapComponent implements OnInit, AfterViewInit {
   
   TILE_SIZE = 256
   
-  size = (this.TILE_SIZE/Math.pow(2, this.zoom))
+  get size(){
+    return (this.TILE_SIZE/Math.pow(2, this.zoom))
+  }
+
+
+  get markerSize(){
+    return this.size * 0.1
+  }
 
 
   lastXY = {
@@ -74,9 +85,18 @@ export class MapComponent implements OnInit, AfterViewInit {
     element: undefined
   }
 
+  currentPosition: {lng, lat, x, y} = undefined
+
   get imageWidth(){
     return this.TILE_SIZE/Math.pow(2, this.zoom + 1)
   }
+
+  tooltip = {
+    showing: false,
+    html: ''
+  }
+
+  loading = false;
 
 
   refreshTile(){
@@ -117,23 +137,41 @@ export class MapComponent implements OnInit, AfterViewInit {
 
 
   zoomin = () => {
-    this.zoom++
-    this.size = (this.TILE_SIZE/Math.pow(2, this.zoom)) 
-    this.currentXY.x = this.currentXY.x + this.size / 2
-    this.currentXY.y = this.currentXY.y + this.size / 2
-    this.verifyBounds()
-    this.refreshTile()
+    this.setZoom(this.zoom+1)
   }
   
 
   zoomout = () => {
-    this.zoom--
-    let preSize = this.size
-    this.size = (this.TILE_SIZE/Math.pow(2, this.zoom)) 
-    this.currentXY.x = this.currentXY.x - (this.size - preSize) / 2
-    this.currentXY.y = this.currentXY.y - (this.size - preSize) / 2
+    this.setZoom(this.zoom-1)
+  }
+
+  setZoom = (z) => {
+    if(z < 0){
+      z = 0
+    }
+    else if(z > 17){
+      z = 17
+    }
+    const {x, y} = this.getCenter()
+    this.zoom = z
+    this.setCenter(x, y)
     this.verifyBounds()
-    this.refreshTile()
+  }
+
+  getCenter = () => {
+    return {
+      x: this.currentXY.x + this.size / 2,
+      y: this.currentXY.y + this.size / 2
+    }
+  }
+
+  wheel(event){
+    if(event.deltaY > 0){
+      this.zoomout()
+    }
+    else{
+      this.zoomin()
+    }
   }
   
 
@@ -167,7 +205,7 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   dbClick(e){
-    console.log(e)
+    this.zoomin()
   }
 
   verifyBounds(){
@@ -192,27 +230,112 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   setCenterLatLng(lat, lng){
-    console.log(lat, lng)
     let projected = TilesUtils.project(lat, lng, this.TILE_SIZE)
-    console.log(projected)
     this.setCenter(projected.lng, projected.lat)
   }
 
   setOnCurrentPosition(){
     let setOnCurrentPosition = (p) => {
       console.log(p)
-      this.setCenterLatLng(p.coords.latitude, p.coords.longitude)
+      //this.setLocationLatLng(p.coords.latitude, p.coords.longitude)
+      let projected = TilesUtils.project(p.coords.latitude, p.coords.longitude, this.TILE_SIZE)
+      this.currentPosition = {lng: p.coords.longitude, lat: p.coords.latitude, x: projected.lng, y: projected.lat}
+      this.setCenter(projected.lng, projected.lat)
     }
     setOnCurrentPosition.bind(this)
 
     let errorGettingPosition = (e) => {
       console.log(e)
+      this.setZoom(2)
     }
     errorGettingPosition.bind(this)
     
     window.navigator.geolocation.getCurrentPosition(setOnCurrentPosition, errorGettingPosition)
   }
 
+  getCurrentPosition(){
+    let setCurrentPosition = (p) => {
+      let projected = TilesUtils.project(p.coords.latitude, p.coords.longitude, this.TILE_SIZE)
+      this.currentPosition = {lng: p.coords.longitude, lat: p.coords.latitude, x: projected.lng, y: projected.lat}
+    }
+    setCurrentPosition.bind(this)
+
+    let errorGettingPosition = (e) => {
+      console.log(e)
+      
+    }
+    errorGettingPosition.bind(this)
+    
+    window.navigator.geolocation.getCurrentPosition(setCurrentPosition, errorGettingPosition)
+  }
+
+  setIntervals(){
+    setInterval(this.getCurrentPosition.bind(this), 500)
+  }
+
+  showTooltip(e){
+    console.log(e)
+    this.tooltip.showing = true;
+    this.tooltip.html = "Mi ubicación"
+  }
   
+
+  focus(){
+    this.loading = true;
+    let lat1 = 2.15, lng1 = -90.45
+    let lat2 = 11.77, lng2 = -81.43
+
+    const center = TilesUtils.project((lat1 + lat2) / 2, (lng1 + lng2) / 2, this.TILE_SIZE)  
+    this.setCenter(center.lng, center.lat)
+    this.setZoom(17)
+
+
+    let bounds = [
+      {x: lng1, y: lat1},
+      {x: lng2, y: lat2},
+    ]
+    setTimeout(this.focusAux.bind(this, bounds), 0);
+  }
+
+  focusAux(bounds){
+    if(!this.fitBounds(bounds)){
+      this.zoomout();
+      setTimeout(this.focusAux.bind(this, bounds), 0)
+    }
+    else{
+      this.loading = false
+    }
+  }
+
+  //pointOnMap(projecting = true){
+  pointOnMap(latitude, longitude, projecting = true){
+    //let latitude = this.currentPosition.lat, longitude = this.currentPosition.lng
+
+    let projected = {lat: latitude, lng: longitude}
+    if(projecting)
+      projected = TilesUtils.project(latitude, longitude, this.TILE_SIZE)
+
+    const bounds = this.mapBounds
+
+    return projected.lat >= bounds[0].y && projected.lat <= bounds[1].y && projected.lng >= bounds[0].x && projected.lng <= bounds[1].x
+  }
+
+  fitBounds(bounds: {x, y}[]){
+    let fit = true;
+
+    bounds.forEach((e) => {
+      fit = fit && this.pointOnMap(e.y, e.x)
+    })
+
+    return fit;
+  }
+
+  get mapBounds(){
+    return [
+      {x: this.currentXY.x, y: this.currentXY.y},
+      {x: this.currentXY.x + this.size, y: this.currentXY.y + this.size}
+    ]
+  }
+
 
 }

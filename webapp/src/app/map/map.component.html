@@ -1,25 +1,57 @@
-<div style="height: 100%; width: 55vw; display: flex">
+<div class="map-container">
 
-    <div style="margin: auto; display: flex; flex-direction: column; width: 85%; height: 90%; position: relative;">
-  
-      <div style="display: flex; margin: 10px auto; position: absolute; flex-direction: column;">
-        <button mat-stroked-button (click)="zoomin()" [disabled]="this.zoom >= 17" style="background-color: white;">+</button>
-        <button mat-stroked-button (click)="zoomout()" [disabled]="this.zoom <= 0" style="background-color: white; padding: 0; max-width: 10px;">-</button>
-      </div>
-
-      <svg [attr.viewBox]="viewBox" preserveAspectRatio="xMinYMin" id="map" [attr.width]="TILE_SIZE" [attr.height]="TILE_SIZE" (attr.width)="svg.width" (attr.height)="svg.height"
-        style="background-color: rgb(226, 226, 226); height: 100%; width: 100%; margin: auto;" [style.cursor]="cursor" 
-        (mousedown)="mouseDown($event)" 
-        (mousemove)="mouseMove($event)" 
-        (mouseup)="mouseUp()" 
-        (mouseleave)="mouseUp()">
-        <svg [attr.width]="TILE_SIZE" [attr.height]="TILE_SIZE" x="0" y="0" (dblclick)="dbClick($event)">
-            <image preserveAspectRatio="none" *ngFor="let img of tileImages[zoom]" [attr.href]="tileUrl(img.x, img.y, img.z)" [attr.x]="img.lng" [attr.y]="img.lat" [attr.width]="imageWidth"></image>
-        </svg>
-        <circle cx="68.44200675555555" cy="121.03375382431418" [attr.r]="size * 0.01" fill="yellow" stroke="blue" stroke-width="0" (click)="circleClick()" />
-        <rect x="-50" y="60" width="40" height="10" fill="red" stroke="blue" stroke-width="1" />
-      </svg>
-  
-      
+  <div style="display: flex; flex-direction: column; width: 85%; height: 90%; position: relative;">
+    <div *ngIf="loading" 
+    style="position: absolute; top: 0; left: 0; background-color: rgba(0, 0, 0, 0.163); height: 100%; width: 100%; display: flex; justify-content: center; align-items: center;" >
+      <mat-spinner></mat-spinner>
     </div>
+    
+
+    <svg [attr.viewBox]="viewBox" preserveAspectRatio="xMinYMin" id="map" [attr.width]="TILE_SIZE"
+      [attr.height]="TILE_SIZE" (attr.width)="svg.width" (attr.height)="svg.height"
+      style="background-color: rgb(226, 226, 226); height: 100%; width: 100%; margin: auto;" [style.cursor]="cursor"
+      (mousedown)="mouseDown($event)" (mousemove)="mouseMove($event)" (mouseup)="mouseUp()" (mouseleave)="mouseUp()"
+      (wheel)="wheel($event)">
+      <svg [attr.width]="TILE_SIZE" [attr.height]="TILE_SIZE" x="0" y="0" (dblclick)="dbClick($event)">
+        <image preserveAspectRatio="none" *ngFor="let img of tileImages[zoom]"
+          [attr.href]="tileUrl(img.x, img.y, img.z)" [attr.x]="img.lng" [attr.y]="img.lat" [attr.width]="imageWidth">
+        </image>
+      </svg>
+      <rect x="63.67999999999999" y="119.57072668130509" width="6.414222222222222" height="6.900025500229461" fill="#0000ff10" stroke="#0000ff" stroke-width="0.01" />
+      <svg *ngIf="currentPosition != undefined" (click)="showTooltip($event)"
+        [attr.x]="currentPosition != undefined? (currentPosition.x - (markerSize / 2)): 0"
+        [attr.y]="currentPosition != undefined? (currentPosition.y - markerSize): 0" xmlns="http://www.w3.org/2000/svg"
+        aria-labelledby="title" aria-describedby="desc" role="img" xmlns:xlink="http://www.w3.org/1999/xlink"
+        [attr.width]="markerSize" [attr.height]="markerSize" viewBox="0 0 64 64">
+        <title>Mi ubicación</title>
+        <path data-name="layer1" fill="#f50057"
+          d="M32 2a20 20 0 0 0-20 20c0 18 20 40 20 40s20-22 20-40A20 20 0 0 0 32 2zm0 28a8 8 0 1 1 8-8 8 8 0 0 1-8 8z">
+        </path>
+      </svg>
+      <circle cx="68.44200675555555" cy="121.03375382431418" [attr.r]="size * 0.01" fill="yellow" stroke="blue"
+        stroke-width="0" (click)="circleClick()" />
+    </svg>
+
+    <div class="controls-container left">
+      <button mat-stroked-button (click)="zoomin()" [disabled]="this.zoom >= 17" class="button-zoom">+</button>
+      <button mat-stroked-button (click)="zoomout()" [disabled]="this.zoom <= 0" class="button-zoom">-</button>
+      <button mat-stroked-button (click)="setOnCurrentPosition()" [disabled]="this.zoom <= 0" class="button-zoom" matTooltip="Centrar en mi ubicacion">
+        <mat-icon style="font-size: 100%; height: unset; width: unset;">gps_fixed</mat-icon>
+      </button>
+      <button mat-stroked-button (click)="focus()" [disabled]="this.zoom <= 0" class="button-zoom" matTooltip="Enfocar los grupos">
+        <mat-icon style="font-size: 100%; height: unset; width: unset;">filter_center_focus</mat-icon>
+      </button>
+    </div>
+
+    <div *ngIf="tooltip.showing" class="tooltip">
+      <div style="position: relative; width: 100%; height: 100%;">
+        <button mat-mini-fab color="primary" class="clear-tooltip mat-elevation-z" (click)="tooltip.showing = false">
+          <mat-icon>clear</mat-icon>
+        </button>
+        <div [innerHTML]="tooltip.html" style="padding: 25px 15px; width: 100%; height: 100%;"></div>
+      </div>
+    </div>
+
+
   </div>
+</div>

@@ -1,5 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { catchError, map, tap } from 'rxjs/operators';
+import { WebSocketSubject } from 'rxjs/webSocket';
 import { DialogService } from '../services/dialog/dialog.service';
+import { WebsocketService } from '../services/websocket/websocket.service';
 
 @Component({
   selector: 'app-mail',
@@ -7,6 +11,8 @@ import { DialogService } from '../services/dialog/dialog.service';
   styleUrls: ['./mail.component.scss']
 })
 export class MailComponent implements OnInit {
+
+  collabOnGroup = undefined
 
   selectedRol = 0
 
@@ -19,8 +25,25 @@ export class MailComponent implements OnInit {
   addingNew = false
 
   constructor(
-    private dialogService: DialogService
-  ) { }
+    private dialogService: DialogService,
+      private webSocket: WebsocketService,
+      private router: Router,
+      private route: ActivatedRoute
+      
+    ){
+      this.route.queryParams
+      .subscribe(params => {
+        if(params.manage)
+          this.collabOnGroup = params.manage
+        else 
+          this.collabOnGroup = undefined
+      }
+    );
+      this.webSocket.connect();
+      this.webSocket.sendMessage({action:1, data:{lat:5.3,lon:4.6}})
+      this.webSocket.messages.subscribe((m) => console.log(m))
+    }
+  
 
 
   ngOnInit(): void {
@@ -41,8 +64,8 @@ export class MailComponent implements OnInit {
     return this.groupHash == ""
   }
 
-  addGroup(hash){
-    this.groups.push({hash, role: this.selectedRol, visible: true})
+  addGroup(hashtag){
+    this.groups.push({hashtag, role: this.selectedRol, visible: true})
     this.addingNew = false
   }
 
@@ -53,5 +76,15 @@ export class MailComponent implements OnInit {
   createGroup(){
     let dialog = this.dialogService.createGroupDialog()
   }
+
+  manageGroup(group){
+    this.router.navigate(["mail"], {queryParams: {manage: group.hashtag}})
+  }
+
+  sendMessage(message){
+    console.log(message)
+  }
+
+  
 
 }

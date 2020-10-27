@@ -3,7 +3,10 @@
   </mat-toolbar>
   <section class="app-container">
     <section class="container">
-        <mat-card class="card" style="height: 85%; min-height: 300px; min-width: 280px; position: relative;">
+        <mat-card class="card" style="height: 85%; min-height: 300px; min-width: 280px; position: relative;" *ngIf="collabOnGroup != undefined">
+            <app-mail-collaborator (sendMessage)="sendMessage($event)"></app-mail-collaborator>
+        </mat-card>
+        <mat-card class="card" style="height: 85%; min-height: 300px; min-width: 280px; position: relative;" *ngIf="collabOnGroup == undefined">
             <div *ngIf="addingNew"
                 (click)="addingNew = false"
                 style="background-color: rgba(0, 0, 0, 0.251); width: 100%; height: 100%; position: absolute; z-index: 100; top: 0; left: 0; border-radius: 4px;">
@@ -65,7 +68,7 @@
                     style="display: flex; justify-content: space-between; width: calc(100% - 30px); margin: 5px; padding: 10px; border-radius: 8px; background-color: rgb(245, 245, 245);">
                     <div style="margin: auto 0; font-size: 15px; ">#{{group.hash}}</div>
                     <div>
-                        <button mat-stroked-button *ngIf="group.role == 1" (click)="toogleVisibility(group)" matTooltip="Añadir registro"
+                        <button mat-stroked-button *ngIf="group.role == 1" (click)="manageGroup(group)" matTooltip="Gestionar grupo"
                             style="margin-right: 7px;" color="accent">
                             <mat-icon>add_location_alt</mat-icon>
                         </button>
@@ -82,7 +85,7 @@
         </mat-card>
     
     </section>
-    <app-map>
+    <app-map [groups]="groups" category="1">
       
     </app-map>
   </section>
