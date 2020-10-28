@@ -4,6 +4,9 @@ import { DialogService } from '../services/dialog/dialog.service';
 import { WebsocketService } from '../services/websocket/websocket.service';
 import { GroupsService } from '../services/groups/groups.service';
 import { ToastrService } from 'ngx-toastr';
+import { Subject } from 'rxjs';
+import { WebSocketSubject } from 'rxjs/webSocket';
+import GeolocationUtils from '../utils/geolocation.utils';
 
 @Component({
   selector: 'app-taxi',
@@ -27,9 +30,13 @@ export class TaxiComponent implements OnInit {
 
   loading = false
 
+  collabSockets = []
+
+  interval = undefined
+
   constructor(
     private dialogService: DialogService,
-      private webSocket: WebsocketService,
+      private webSocketService: WebsocketService,
       private router: Router,
       private route: ActivatedRoute,
       public groupsService: GroupsService,
@@ -49,7 +56,13 @@ export class TaxiComponent implements OnInit {
 
 
   ngOnInit(): void {
-    console.log(this.groupsService.groups)
+    document.addEventListener("visibilitychange", (() => {
+      if (document.visibilityState === 'visible') {
+        this.refreshInverval()
+      } else {
+        this.stopInterval();
+      }
+    }).bind(this));
   }
 
   changeSelectedRol(value){
@@ -70,6 +83,7 @@ export class TaxiComponent implements OnInit {
         data => {
           this.toastr.success(`El grupo #${this.groupHash} se puede ver en este momento`)
           this.groupsService.groups.push({ hashtag: data['hashtag'], role: this.selectedRol, visible: true })
+          
           this.loading = false;
         },
         error => {
@@ -89,6 +103,11 @@ export class TaxiComponent implements OnInit {
         data => {
           this.toastr.success(`El grupo #${this.groupHash} se puede ver en este momento`)
           this.groupsService.groups.push({ name: data['name'], token: data['token'], hashtag: this.groupHash, role: this.selectedRol, visible: true })
+          if(this.selectedRol == 2){
+            console.log("Se agrega")
+            this.collabSockets.push({...this.webSocketService.connect(data['token']), group: this.groupHash})
+            this.refreshInverval()
+          }
           this.loading = false;
         },
         error => {
@@ -129,5 +148,30 @@ export class TaxiComponent implements OnInit {
   sendMessage(message){
     console.log(message)
   }
+
+  async sendCollaboratorInfo(){
+    let currentLocation : any = await GeolocationUtils.getCurrentLocation()
+    this.collabSockets.forEach((e: {messagesSubject: Subject<any>, socket: WebSocketSubject<any>, hashtag: string}) => {
+      e.socket.next({action: 1, data: {lat: currentLocation.lat, lon: currentLocation.lng}})
+      e.socket.asObservable().subscribe(response => {
+        console.log(response)
+      })
+    })
+  }
+
+  refreshInverval(){
+    if(this.interval != undefined){
+      clearInterval(this.interval)
+    }
+    this.sendCollaboratorInfo()
+    this.interval = setInterval(this.sendCollaboratorInfo.bind(this), 5000)
+  }
+
+  stopInterval(){
+    if(this.interval)
+      clearInterval(this.interval)
+    this.interval = undefined;
+  }
+
 
 }
