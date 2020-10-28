@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { ArrayType } from '@angular/compiler';
 import { AfterViewChecked, AfterViewInit, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
@@ -17,11 +18,12 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private toastr: ToastrService,
-    private webSocketService: WebsocketService
+    private webSocketService: WebsocketService,
+    private datePipe: DatePipe
   ) {
   }
   ngOnDestroy(): void {
-    if(this.webSocket != undefined){
+    if (this.webSocket != undefined) {
       this.webSocket.socket.complete()
     }
   }
@@ -112,9 +114,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   loading = false;
 
-  webSocket : {messagesSubject: Subject<any>, socket: WebSocketSubject<any>};
+  webSocket: { messagesSubject: Subject<any>, socket: WebSocketSubject<any> };
 
-  boundingBox : any[][]
+  boundingBox: any[][]
 
 
   refreshTile() {
@@ -355,18 +357,19 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     ]
   }
 
-  setupMapInfoWS(){
+  setupMapInfoWS() {
     this.webSocket = this.webSocketService.connect("guest")
     console.log(this.webSocket)
     this.webSocket.socket.asObservable().subscribe(data => {
-      const {records, bounding_box} = data.rows[0].get_realtime_info 
+      const { records, bounding_box } = data.rows[0].get_realtime_info
       this.showTaxis(records)
-      this.boundingBox = [bounding_box.coordinates[0][0], bounding_box.coordinates[0][2]]
+      if(bounding_box != null)
+        this.boundingBox = [bounding_box.coordinates[0][0], bounding_box.coordinates[0][2]]
     })
-    if(this.groups.length > 0)
+    if (this.groups.length > 0)
       this.webSocket.socket.next(
         {
-          action: Number(4), 
+          action: Number(4),
           data: {
             category: Number(this.category),
             groups: this.groups.filter(group => group.visible).map(group => group.hashtag)
@@ -374,14 +377,14 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         })
 
     setInterval(this.refreshMapInfo.bind(this), 5000)
-    
+
   }
 
-  refreshMapInfo(){
-    if(this.groups.length > 0)
+  refreshMapInfo() {
+    if (this.groups.length > 0)
       this.webSocket.socket.next(
         {
-          action: Number(4), 
+          action: Number(4),
           data: {
             category: Number(this.category),
             groups: this.groups.filter(group => group.visible).map(group => group.hashtag)
@@ -393,10 +396,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   /* TAXIS */
 
   taxis = [
-    
+
   ]
 
-  showTaxis(records : any[]){
+  showTaxis(records: any[]) {
     records = records.filter(taxi => taxi.geom != null)
     records.forEach(taxiRecord => {
       const projected = TilesUtils.project(taxiRecord.geom.coordinates[1], taxiRecord.geom.coordinates[0], this.TILE_SIZE)
@@ -406,9 +409,32 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.taxis = records
   }
 
-  showTaxiTooltip(taxi){
-    console.log(taxi)
-    this.showTooltip("Taxi x")
+  showTaxiTooltip(taxi) {
+    /*
+      collaborator: "6ef38bb0-8388-4fdc-9f46-cd6cd22273c5"
+      driver_name: "x"
+      geom: {type: "Point", coordinates: Array(2)}
+      group: "beaa4cd0-e2c4-4b84-93e4-da481014bec2"
+      hashtag: "pruebataxi"
+      is_available: true
+      last_seen: "2020-10-28T16:16:35.100587"
+      ride_count: 0
+      session: "efd8a635-4368-417e-8498-0ebb0095ed4a"
+      vehicle_brand: "x"
+      vehicle_model: "x"
+      vehicle_plate: "x"
+      x: 68.07103146666668
+      y: 120.5172813918194
+    */
+    this.showTooltip(
+      `<div style="text-align: center; line-height: 1.7">
+        <b>${taxi.driver_name}</b> <br>
+        <span>#${taxi.hashtag}</span> <br>
+        <b>${taxi.is_available? "Libre": "En viaje"}</b> <br>
+        <b>Placa: ${taxi.vehicle_plate}</b> <br><br>
+
+        <span>Última actualización: ${this.datePipe.transform(taxi.last_seen + "+00:00", 'h:mm:ss a')}
+      </div>`)
   }
 
 
@@ -416,10 +442,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   /* MAIL */
 
   mails = [
-    
+
   ]
 
-  showMailTooltip(mail){
+  showMailTooltip(mail) {
     console.log(mail)
     this.showTooltip("Mail x")
   }

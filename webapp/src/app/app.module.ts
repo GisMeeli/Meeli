@@ -7,7 +7,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from './material/material.module';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MapComponent } from './map/map.component';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CreateGroupComponent } from './create-group/create-group.component';
 import { DialogService } from './services/dialog/dialog.service';
@@ -49,7 +49,7 @@ import { ToastrModule } from 'ngx-toastr';
   entryComponents: [
     CreateGroupComponent
   ],
-  providers: [DialogService],
+  providers: [DialogService, DatePipe],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
