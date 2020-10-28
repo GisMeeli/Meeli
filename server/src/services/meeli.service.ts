@@ -8,7 +8,7 @@ import { GroupsService } from './groups.service';
 export class MeeliService implements Service {
   constructor(private repository: MeeliRepository, private groupsService: GroupsService) {}
 
-  async handle(auth: AuthenticatedSessionModel, msg: ws.IMessage): Promise<any> {
+  async handleCollaboratorRequest(auth: AuthenticatedSessionModel, msg: ws.IMessage): Promise<any> {
     const req = JSON.parse(msg.utf8Data) as MeeliRequest;
     let res: any;
 
@@ -19,6 +19,15 @@ export class MeeliService implements Service {
         res = { result: 'done' };
         break;
     }
+
+    return res;
+  }
+
+  async handleGuestRequest(msg: ws.IMessage): Promise<any> {
+    const req = JSON.parse(msg.utf8Data) as MeeliRequest;
+    let res: any;
+
+    res = { result: 'done' };
 
     return res;
   }

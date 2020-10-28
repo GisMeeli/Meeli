@@ -88,7 +88,6 @@ export class MeeliServer {
   }
 
   private setupHttpsServer() {
-    //const certsLocation = '/etc/letsencrypt/live/meeli.sytes.net';
     const certsLocation = 'certs';
     const privateKey = fs.readFileSync(`${certsLocation}/privkey.pem`, 'utf8');
     const certificate = fs.readFileSync(`${certsLocation}/cert.pem`, 'utf8');
@@ -132,29 +131,42 @@ export class MeeliServer {
     })
       .on('request', async (request: ws.request) => {
         const token = request.resource.replace('/', '');
-        const auth = await this.sessionsService.authenticateSession(token);
 
-        if (auth == undefined) {
-          request.reject(401, 'Invalid session.');
-        } else {
-          auth.groupCategory = (await this.groupsService.getGroupById(auth.groupId)).category;
-
+        if (token == 'guest') {
           const connection = request.accept('meeli', request.origin);
-
-          this.meeliService.initializeMeeliSession(auth);
-
           connection
             .on('message', async (msg: ws.IMessage) => {
-              const result = await this.meeliService.handle(auth, msg);
+              const result = await this.meeliService.handleGuestRequest(msg);
 
               connection.sendUTF(JSON.stringify(result));
             })
-            .on('close', (code: number, description: string) => {
-              //
-            })
-            .on('error', (err: Error) => {
-              console.log(err);
-            });
+            .on('close', (code: number, description: string) => {})
+            .on('error', (err: Error) => {});
+        } else {
+          const auth = await this.sessionsService.authenticateSession(token);
+
+          if (auth == undefined) {
+            request.reject(401, 'Invalid session.');
+          } else {
+            auth.groupCategory = (await this.groupsService.getGroupById(auth.groupId)).category;
+
+            const connection = request.accept('meeli', request.origin);
+
+            this.meeliService.initializeMeeliSession(auth);
+
+            connection
+              .on('message', async (msg: ws.IMessage) => {
+                const result = await this.meeliService.handleCollaboratorRequest(auth, msg);
+
+                connection.sendUTF(JSON.stringify(result));
+              })
+              .on('close', (code: number, description: string) => {
+                //
+              })
+              .on('error', (err: Error) => {
+                console.log(err);
+              });
+          }
         }
       })
       .on('connect', (connection: ws.connection) => {

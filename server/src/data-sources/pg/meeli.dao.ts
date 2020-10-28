@@ -37,7 +37,7 @@ export class MeeliDao implements MeeliRepository {
   async updateCollaboratorLocation(auth: AuthenticatedSessionModel, location: MeeliPoint): Promise<any> {
     const pg = await PostgresConnectionManager.getPool().connect();
 
-    await pg.query(`UPDATE ${this.getSchema(auth)}.realtime SET geom = ST_SetSRID(ST_MakePoint($1, $2), 4326) WHERE session = $3;`, [
+    await pg.query(`UPDATE ${this.getSchema(auth)}.realtime SET geom = ST_SetSRID(ST_MakePoint($1, $2), 4326), last_seen = NOW() WHERE session = $3;`, [
       location.lon,
       location.lat,
       auth.sessionId
