@@ -1158,7 +1158,7 @@ __webpack_require__.r(__webpack_exports__);
 class AppModule {
 }
 AppModule.ɵmod = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineNgModule"]({ type: AppModule, bootstrap: [_app_component__WEBPACK_IMPORTED_MODULE_3__["AppComponent"]] });
-AppModule.ɵinj = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineInjector"]({ factory: function AppModule_Factory(t) { return new (t || AppModule)(); }, providers: [_services_dialog_dialog_service__WEBPACK_IMPORTED_MODULE_10__["DialogService"]], imports: [[
+AppModule.ɵinj = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineInjector"]({ factory: function AppModule_Factory(t) { return new (t || AppModule)(); }, providers: [_services_dialog_dialog_service__WEBPACK_IMPORTED_MODULE_10__["DialogService"], _angular_common__WEBPACK_IMPORTED_MODULE_7__["DatePipe"]], imports: [[
             _angular_platform_browser__WEBPACK_IMPORTED_MODULE_0__["BrowserModule"],
             _angular_common__WEBPACK_IMPORTED_MODULE_7__["CommonModule"],
             _app_routing_module__WEBPACK_IMPORTED_MODULE_2__["AppRoutingModule"],
@@ -1215,7 +1215,7 @@ AppModule.ɵinj = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineInjector
                 entryComponents: [
                     _create_group_create_group_component__WEBPACK_IMPORTED_MODULE_9__["CreateGroupComponent"]
                 ],
-                providers: [_services_dialog_dialog_service__WEBPACK_IMPORTED_MODULE_10__["DialogService"]],
+                providers: [_services_dialog_dialog_service__WEBPACK_IMPORTED_MODULE_10__["DialogService"], _angular_common__WEBPACK_IMPORTED_MODULE_7__["DatePipe"]],
                 bootstrap: [_app_component__WEBPACK_IMPORTED_MODULE_3__["AppComponent"]]
             }]
     }], null, null); })();
@@ -1447,9 +1447,10 @@ function MapComponent_div_21_Template(rf, ctx) { if (rf & 1) {
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵproperty"]("innerHTML", ctx_r5.tooltip.html, _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵsanitizeHtml"]);
 } }
 class MapComponent {
-    constructor(toastr, webSocketService) {
+    constructor(toastr, webSocketService, datePipe) {
         this.toastr = toastr;
         this.webSocketService = webSocketService;
+        this.datePipe = datePipe;
         this.tile = "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png";
         this.zoom = 13;
         this.clicked = false;
@@ -1710,7 +1711,8 @@ class MapComponent {
         this.webSocket.socket.asObservable().subscribe(data => {
             const { records, bounding_box } = data.rows[0].get_realtime_info;
             this.showTaxis(records);
-            this.boundingBox = [bounding_box.coordinates[0][0], bounding_box.coordinates[0][2]];
+            if (bounding_box != null)
+                this.boundingBox = [bounding_box.coordinates[0][0], bounding_box.coordinates[0][2]];
         });
         if (this.groups.length > 0)
             this.webSocket.socket.next({
@@ -1742,16 +1744,38 @@ class MapComponent {
         this.taxis = records;
     }
     showTaxiTooltip(taxi) {
-        console.log(taxi);
-        this.showTooltip("Taxi x");
+        /*
+          collaborator: "6ef38bb0-8388-4fdc-9f46-cd6cd22273c5"
+          driver_name: "x"
+          geom: {type: "Point", coordinates: Array(2)}
+          group: "beaa4cd0-e2c4-4b84-93e4-da481014bec2"
+          hashtag: "pruebataxi"
+          is_available: true
+          last_seen: "2020-10-28T16:16:35.100587"
+          ride_count: 0
+          session: "efd8a635-4368-417e-8498-0ebb0095ed4a"
+          vehicle_brand: "x"
+          vehicle_model: "x"
+          vehicle_plate: "x"
+          x: 68.07103146666668
+          y: 120.5172813918194
+        */
+        this.showTooltip(`<div style="text-align: center; line-height: 1.7">
+        <b>${taxi.driver_name}</b> <br>
+        <span>#${taxi.hashtag}</span> <br>
+        <b>${taxi.is_available ? "Libre" : "En viaje"}</b> <br>
+        <b>Placa: ${taxi.vehicle_plate}</b> <br><br>
+
+        <span>Última actualización: ${this.datePipe.transform(taxi.last_seen + "+00:00", 'h:mm:ss a')}
+      </div>`);
     }
     showMailTooltip(mail) {
         console.log(mail);
         this.showTooltip("Mail x");
     }
 }
-MapComponent.ɵfac = function MapComponent_Factory(t) { return new (t || MapComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](ngx_toastr__WEBPACK_IMPORTED_MODULE_2__["ToastrService"]), _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_services_websocket_websocket_service__WEBPACK_IMPORTED_MODULE_3__["WebsocketService"])); };
-MapComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineComponent"]({ type: MapComponent, selectors: [["app-map"]], inputs: { groups: "groups", category: "category" }, decls: 22, vars: 19, consts: [[1, "map-container"], [2, "display", "flex", "flex-direction", "column", "width", "85%", "height", "90%", "position", "relative"], ["style", "position: absolute; top: 0; left: 0; background-color: rgba(0, 0, 0, 0.163); height: 100%; width: 100%; display: flex; justify-content: center; align-items: center;", 4, "ngIf"], ["preserveAspectRatio", "xMinYMin", "id", "map", 2, "background-color", "rgb(226, 226, 226)", "height", "100%", "width", "100%", "margin", "auto", 3, "attr.width", "attr.height", "mousedown", "mousemove", "mouseup", "mouseleave", "wheel"], ["x", "0", "y", "0", 3, "dblclick"], ["preserveAspectRatio", "none", 4, "ngFor", "ngForOf"], ["x", "0", "y", "0"], ["viewBox", "0 0 64 64", 3, "click", 4, "ngFor", "ngForOf"], ["xmlns", "http://www.w3.org/2000/svg", "aria-labelledby", "title", "aria-describedby", "desc", "role", "img", 0, "xmlns", "xlink", "http://www.w3.org/1999/xlink", "viewBox", "0 0 64 64", 3, "click", 4, "ngIf"], [1, "controls-container", "left"], ["mat-stroked-button", "", 1, "button-zoom", 3, "disabled", "click"], ["mat-stroked-button", "", "matTooltip", "Centrar en mi ubicacion", 1, "button-zoom", 3, "disabled", "click"], [2, "font-size", "100%", "height", "unset", "width", "unset"], ["mat-stroked-button", "", "matTooltip", "Enfocar los grupos", 1, "button-zoom", 3, "disabled", "click"], ["class", "tooltip", 4, "ngIf"], [2, "position", "absolute", "top", "0", "left", "0", "background-color", "rgba(0, 0, 0, 0.163)", "height", "100%", "width", "100%", "display", "flex", "justify-content", "center", "align-items", "center"], ["preserveAspectRatio", "none"], ["viewBox", "0 0 64 64", 3, "click"], ["data-name", "layer4", "d", "M59.2 31h-3.9l-4.4-8H39v8h20.2z", "fill", "#c3d6e0"], ["data-name", "layer2", "d", "M61 32.4c0-1.1-.9-1.3-1.7-1.4H39v12h5.5a6 6 0 0 1 8.9 0H61z", "fill", "#415582"], ["data-name", "layer3", "d", "M39 15H3v28h5.5a6 6 0 0 1 8.9 0H39V15z", "fill", "#f27e7c"], ["data-name", "layer2", "cx", "13", "cy", "47", "r", "6", "fill", "#415582"], ["data-name", "layer2", "cx", "49", "cy", "47", "r", "6", "fill", "#415582"], ["data-name", "layer1", "d", "M44.5 43h-27a6 6 0 0 1 1.2 6h24.6a6 6 0 0 1 1.2-6zm9 0a6 6 0 0 1 1.2 6H61v-6z", "fill", "#6479a0"], ["data-name", "opacity", "fill", "#fff", "opacity", ".5", "d", "M51.8 24.6l-.9-1.6h-3.3l-8 8h5.7l6.5-6.4z"], ["data-name", "opacity", "d", "M8 15H3v28h5.5a6 6 0 0 1 8.9 0H39v-4H8zm10.6 34h24.7a5.7 5.7 0 0 1-.3-3H18.9a5.7 5.7 0 0 1-.3 3zm36 0H61v-3h-6.1a5.7 5.7 0 0 1-.3 3z", "fill", "#000064", "opacity", ".15"], ["data-name", "opacity", "cx", "13", "cy", "47", "r", "3", "fill", "#000064", "opacity", ".2"], ["data-name", "opacity", "cx", "49", "cy", "47", "r", "3", "fill", "#000064", "opacity", ".2"], ["data-name", "stroke", "fill", "none", "stroke", "#2e4369", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1", "d", "M43.3 49H18.7M61 49h-6.3m-10.2-6H39m0-20h11.9l4.4 8h3.9c.8 0 1.8.2 1.8 1.4V43h-7.5m1.8-12H39M8.5 43H3V15h36v28H17.5"], ["data-name", "stroke", "cx", "13", "cy", "47", "r", "6", "fill", "none", "stroke", "#2e4369", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1"], ["data-name", "stroke", "cx", "49", "cy", "47", "r", "6", "fill", "none", "stroke", "#2e4369", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1"], ["data-name", "layer3", "d", "M4 28h39l-5.5-10a3.7 3.7 0 0 0-3.1-2H10.3c-1 0-2 1-2.6 2S1.8 29 1.8 29A3 3 0 0 1 4 28z", "fill", "#c3d6e0"], ["data-name", "layer2", "cx", "14", "cy", "42", "r", "6", "fill", "#2a3142"], ["data-name", "layer2", "cx", "50", "cy", "42", "r", "6", "fill", "#2a3142"], ["data-name", "layer1", "d", "M59 28H5a3 3 0 0 0-3 3v11h6a6 6 0 0 1 12 0h24a6 6 0 0 1 12 0h6V31a3 3 0 0 0-3-3z"], ["data-name", "opacity", "cx", "14", "cy", "42", "r", "3", "fill", "#000064", "opacity", ".2"], ["data-name", "opacity", "cx", "50", "cy", "42", "r", "3", "fill", "#000064", "opacity", ".2"], ["data-name", "opacity", "d", "M18.2 16l-12 12H16l12-12zm19.3 2a4.1 4.1 0 0 0-2-1.8L23.7 28h5.7l8.8-8.8z", "fill", "#fff", "opacity", ".5"], ["data-name", "opacity", "d", "M7 28H5a3 3 0 0 0-3 3v11h6a6 6 0 0 1 .9-3.1H7zm49 14h6v-3.1h-6.9A6 6 0 0 1 56 42zm-36 0h24a6 6 0 0 1 .9-3.1H19.1A6 6 0 0 1 20 42z", "fill", "#000064", "opacity", ".15"], ["data-name", "stroke", "d", "M44 28l-5.5-10a3.7 3.7 0 0 0-3.1-2H11.3c-1 0-2 1-2.6 2S2.8 29 2.8 29", "fill", "none", "stroke", "#6d6f73", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1"], ["data-name", "stroke", "d", "M56 42h6V31a3 3 0 0 0-3-3H5a3 3 0 0 0-3 3v11h6m12 0h24", "fill", "none", "stroke", "#6d6f73", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1"], ["data-name", "stroke", "cx", "14", "cy", "42", "r", "6", "fill", "none", "stroke", "#6d6f73", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1"], ["data-name", "stroke", "cx", "50", "cy", "42", "r", "6", "fill", "none", "stroke", "#6d6f73", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1"], ["xmlns", "http://www.w3.org/2000/svg", "aria-labelledby", "title", "aria-describedby", "desc", "role", "img", 0, "xmlns", "xlink", "http://www.w3.org/1999/xlink", "viewBox", "0 0 64 64", 3, "click"], ["data-name", "layer1", "fill", "#f50057", "d", "M32 2a20 20 0 0 0-20 20c0 18 20 40 20 40s20-22 20-40A20 20 0 0 0 32 2zm0 28a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"], [1, "tooltip"], [2, "position", "relative", "width", "100%", "height", "100%"], ["mat-mini-fab", "", "color", "primary", 1, "clear-tooltip", "mat-elevation-z", 3, "click"], [2, "padding", "25px 15px", "width", "100%", "height", "100%", 3, "innerHTML"]], template: function MapComponent_Template(rf, ctx) { if (rf & 1) {
+MapComponent.ɵfac = function MapComponent_Factory(t) { return new (t || MapComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](ngx_toastr__WEBPACK_IMPORTED_MODULE_2__["ToastrService"]), _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_services_websocket_websocket_service__WEBPACK_IMPORTED_MODULE_3__["WebsocketService"]), _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_angular_common__WEBPACK_IMPORTED_MODULE_4__["DatePipe"])); };
+MapComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineComponent"]({ type: MapComponent, selectors: [["app-map"]], inputs: { groups: "groups", category: "category" }, decls: 22, vars: 19, consts: [[1, "map-container"], [2, "display", "flex", "flex-direction", "column", "width", "85%", "height", "90%", "position", "relative"], ["style", "position: absolute; top: 0; left: 0; background-color: rgba(0, 0, 0, 0.163); height: 100%; width: 100%; display: flex; justify-content: center; align-items: center;", 4, "ngIf"], ["preserveAspectRatio", "xMinYMin", "id", "map", 2, "background-color", "rgb(226, 226, 226)", "height", "100%", "width", "100%", "margin", "auto", 3, "attr.width", "attr.height", "mousedown", "mousemove", "mouseup", "mouseleave", "wheel"], ["x", "0", "y", "0", 3, "dblclick"], ["preserveAspectRatio", "none", 4, "ngFor", "ngForOf"], ["x", "0", "y", "0"], ["viewBox", "0 0 64 64", 3, "click", 4, "ngFor", "ngForOf"], ["xmlns", "http://www.w3.org/2000/svg", "aria-labelledby", "title", "aria-describedby", "desc", "role", "img", 0, "xmlns", "xlink", "http://www.w3.org/1999/xlink", "viewBox", "0 0 64 64", 3, "click", 4, "ngIf"], [1, "controls-container", "left"], ["mat-stroked-button", "", 1, "button-zoom", 3, "disabled", "click"], ["mat-stroked-button", "", "matTooltip", "Centrar en mi ubicacion", 1, "button-zoom", 3, "disabled", "click"], [2, "font-size", "100%", "height", "unset", "width", "unset"], ["mat-stroked-button", "", "matTooltip", "Enfocar los grupos", 1, "button-zoom", 3, "disabled", "click"], ["class", "tooltip", 4, "ngIf"], [2, "position", "absolute", "top", "0", "left", "0", "background-color", "rgba(0, 0, 0, 0.163)", "height", "100%", "width", "100%", "display", "flex", "justify-content", "center", "align-items", "center"], ["preserveAspectRatio", "none"], ["viewBox", "0 0 64 64", 3, "click"], ["data-name", "layer4", "d", "M59.2 31h-3.9l-4.4-8H39v8h20.2z", "fill", "#c3d6e0"], ["data-name", "layer2", "d", "M61 32.4c0-1.1-.9-1.3-1.7-1.4H39v12h5.5a6 6 0 0 1 8.9 0H61z", "fill", "#415582"], ["data-name", "layer3", "d", "M39 15H3v28h5.5a6 6 0 0 1 8.9 0H39V15z", "fill", "#f27e7c"], ["data-name", "layer2", "cx", "13", "cy", "47", "r", "6", "fill", "#415582"], ["data-name", "layer2", "cx", "49", "cy", "47", "r", "6", "fill", "#415582"], ["data-name", "layer1", "d", "M44.5 43h-27a6 6 0 0 1 1.2 6h24.6a6 6 0 0 1 1.2-6zm9 0a6 6 0 0 1 1.2 6H61v-6z", "fill", "#6479a0"], ["data-name", "opacity", "fill", "#fff", "opacity", ".5", "d", "M51.8 24.6l-.9-1.6h-3.3l-8 8h5.7l6.5-6.4z"], ["data-name", "opacity", "d", "M8 15H3v28h5.5a6 6 0 0 1 8.9 0H39v-4H8zm10.6 34h24.7a5.7 5.7 0 0 1-.3-3H18.9a5.7 5.7 0 0 1-.3 3zm36 0H61v-3h-6.1a5.7 5.7 0 0 1-.3 3z", "fill", "#000064", "opacity", ".15"], ["data-name", "opacity", "cx", "13", "cy", "47", "r", "3", "fill", "#000064", "opacity", ".2"], ["data-name", "opacity", "cx", "49", "cy", "47", "r", "3", "fill", "#000064", "opacity", ".2"], ["data-name", "stroke", "fill", "none", "stroke", "#2e4369", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1", "d", "M43.3 49H18.7M61 49h-6.3m-10.2-6H39m0-20h11.9l4.4 8h3.9c.8 0 1.8.2 1.8 1.4V43h-7.5m1.8-12H39M8.5 43H3V15h36v28H17.5"], ["data-name", "stroke", "cx", "13", "cy", "47", "r", "6", "fill", "none", "stroke", "#2e4369", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1"], ["data-name", "stroke", "cx", "49", "cy", "47", "r", "6", "fill", "none", "stroke", "#2e4369", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1"], ["data-name", "layer3", "d", "M4 28h39l-5.5-10a3.7 3.7 0 0 0-3.1-2H10.3c-1 0-2 1-2.6 2S1.8 29 1.8 29A3 3 0 0 1 4 28z", "fill", "#c3d6e0"], ["data-name", "layer2", "cx", "14", "cy", "42", "r", "6", "fill", "#2a3142"], ["data-name", "layer2", "cx", "50", "cy", "42", "r", "6", "fill", "#2a3142"], ["data-name", "layer1", "d", "M59 28H5a3 3 0 0 0-3 3v11h6a6 6 0 0 1 12 0h24a6 6 0 0 1 12 0h6V31a3 3 0 0 0-3-3z"], ["data-name", "opacity", "cx", "14", "cy", "42", "r", "3", "fill", "#000064", "opacity", ".2"], ["data-name", "opacity", "cx", "50", "cy", "42", "r", "3", "fill", "#000064", "opacity", ".2"], ["data-name", "opacity", "d", "M18.2 16l-12 12H16l12-12zm19.3 2a4.1 4.1 0 0 0-2-1.8L23.7 28h5.7l8.8-8.8z", "fill", "#fff", "opacity", ".5"], ["data-name", "opacity", "d", "M7 28H5a3 3 0 0 0-3 3v11h6a6 6 0 0 1 .9-3.1H7zm49 14h6v-3.1h-6.9A6 6 0 0 1 56 42zm-36 0h24a6 6 0 0 1 .9-3.1H19.1A6 6 0 0 1 20 42z", "fill", "#000064", "opacity", ".15"], ["data-name", "stroke", "d", "M44 28l-5.5-10a3.7 3.7 0 0 0-3.1-2H11.3c-1 0-2 1-2.6 2S2.8 29 2.8 29", "fill", "none", "stroke", "#6d6f73", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1"], ["data-name", "stroke", "d", "M56 42h6V31a3 3 0 0 0-3-3H5a3 3 0 0 0-3 3v11h6m12 0h24", "fill", "none", "stroke", "#6d6f73", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1"], ["data-name", "stroke", "cx", "14", "cy", "42", "r", "6", "fill", "none", "stroke", "#6d6f73", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1"], ["data-name", "stroke", "cx", "50", "cy", "42", "r", "6", "fill", "none", "stroke", "#6d6f73", "stroke-linecap", "round", "stroke-linejoin", "round", "stroke-width", "1"], ["xmlns", "http://www.w3.org/2000/svg", "aria-labelledby", "title", "aria-describedby", "desc", "role", "img", 0, "xmlns", "xlink", "http://www.w3.org/1999/xlink", "viewBox", "0 0 64 64", 3, "click"], ["data-name", "layer1", "fill", "#f50057", "d", "M32 2a20 20 0 0 0-20 20c0 18 20 40 20 40s20-22 20-40A20 20 0 0 0 32 2zm0 28a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"], [1, "tooltip"], [2, "position", "relative", "width", "100%", "height", "100%"], ["mat-mini-fab", "", "color", "primary", 1, "clear-tooltip", "mat-elevation-z", 3, "click"], [2, "padding", "25px 15px", "width", "calc(100% - 30px)", "height", "100%", "text-align", "center", "line-height", "1.7", 3, "innerHTML"]], template: function MapComponent_Template(rf, ctx) { if (rf & 1) {
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](0, "div", 0);
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](1, "div", 1);
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtemplate"](2, MapComponent_div_2_Template, 2, 0, "div", 2);
@@ -1830,7 +1854,7 @@ MapComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineCompo
                 templateUrl: './map.component.html',
                 styleUrls: ['./map.component.scss']
             }]
-    }], function () { return [{ type: ngx_toastr__WEBPACK_IMPORTED_MODULE_2__["ToastrService"] }, { type: _services_websocket_websocket_service__WEBPACK_IMPORTED_MODULE_3__["WebsocketService"] }]; }, { groups: [{
+    }], function () { return [{ type: ngx_toastr__WEBPACK_IMPORTED_MODULE_2__["ToastrService"] }, { type: _services_websocket_websocket_service__WEBPACK_IMPORTED_MODULE_3__["WebsocketService"] }, { type: _angular_common__WEBPACK_IMPORTED_MODULE_4__["DatePipe"] }]; }, { groups: [{
             type: _angular_core__WEBPACK_IMPORTED_MODULE_0__["Input"]
         }], category: [{
             type: _angular_core__WEBPACK_IMPORTED_MODULE_0__["Input"]
