@@ -5,7 +5,7 @@
   <div style="height: 4px; width: 100%; background-color:#ff4081;"  *ngIf="!loading"></div>
   <section class="app-container">
     <section class="container">
-        <button mat-raised-button class="mobile-groups" color="primary" (click)="mobileShowGroups = !mobileShowGroups">{{mobileShowGroups? "Atrás": "Grupos"}}</button>
+        <button mat-raised-button class="mobile-groups" color="primary" (click)="mobileShowGroups = !mobileShowGroups">{{mobileShowGroups? "Atras": "Grupos"}}</button>
         <mat-card class="card" *ngIf="collabOnGroup != undefined" [ngClass]="mobileShowGroups? 'visible': ''">
             <app-mail-collaborator (sendMessage)="sendMessage($event)"></app-mail-collaborator>
         </mat-card>
