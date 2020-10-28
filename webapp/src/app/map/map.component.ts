@@ -1,5 +1,5 @@
 import { ArrayType } from '@angular/compiler';
-import { AfterViewChecked, AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { range, Subject } from 'rxjs';
 import { WebSocketSubject } from 'rxjs/webSocket';
@@ -12,14 +12,18 @@ import TilesUtils from '../utils/tiles.utils';
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
-export class MapComponent implements OnInit, AfterViewInit {
+export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   constructor(
     private toastr: ToastrService,
     private webSocketService: WebsocketService
-  ) { 
-    
+  ) {
+  }
+  ngOnDestroy(): void {
+    if(this.webSocket != undefined){
+      this.webSocket.socket.complete()
+    }
   }
 
   @Input() groups: any[];
@@ -56,6 +60,7 @@ export class MapComponent implements OnInit, AfterViewInit {
   map: any
 
   clicked = false
+
 
   currentXY = {
     x: 0,
@@ -108,6 +113,8 @@ export class MapComponent implements OnInit, AfterViewInit {
   loading = false;
 
   webSocket : {messagesSubject: Subject<any>, socket: WebSocketSubject<any>};
+
+  boundingBox : any[][]
 
 
   refreshTile() {
@@ -283,20 +290,19 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   setIntervals() {
     setInterval(this.getCurrentPosition.bind(this), 1000)
-    //this.setupMapInfoWS()
+    this.setupMapInfoWS()
   }
 
-  showTooltip(e) {
-    console.log(e)
+  showTooltip(html) {
     this.tooltip.showing = true;
-    this.tooltip.html = "Mi ubicación"
+    this.tooltip.html = html
   }
 
 
   focus() {
     this.loading = true;
-    let lat1 = 2.15, lng1 = -90.45
-    let lat2 = 11.77, lng2 = -81.43
+    let lat1 = this.boundingBox[0][1], lng1 = this.boundingBox[0][0]
+    let lat2 = this.boundingBox[1][1], lng2 = this.boundingBox[1][0]
 
     const center = TilesUtils.project((lat1 + lat2) / 2, (lng1 + lng2) / 2, this.TILE_SIZE)
     this.setCenter(center.lng, center.lat)
@@ -353,15 +359,71 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.webSocket = this.webSocketService.connect("guest")
     console.log(this.webSocket)
     this.webSocket.socket.asObservable().subscribe(data => {
-      console.log(data)
+      const {records, bounding_box} = data.rows[0].get_realtime_info 
+      this.showTaxis(records)
+      this.boundingBox = [bounding_box.coordinates[0][0], bounding_box.coordinates[0][2]]
     })
-    this.webSocket.socket.next("Prueba")
+    if(this.groups.length > 0)
+      this.webSocket.socket.next(
+        {
+          action: Number(4), 
+          data: {
+            category: Number(this.category),
+            groups: this.groups.filter(group => group.visible).map(group => group.hashtag)
+          }
+        })
+
+    setInterval(this.refreshMapInfo.bind(this), 5000)
     
   }
 
   refreshMapInfo(){
-    this.webSocket.socket.next("Prueba")
+    if(this.groups.length > 0)
+      this.webSocket.socket.next(
+        {
+          action: Number(4), 
+          data: {
+            category: Number(this.category),
+            groups: this.groups.filter(group => group.visible).map(group => group.hashtag)
+          }
+        }
+      )
   }
+
+  /* TAXIS */
+
+  taxis = [
+    
+  ]
+
+  showTaxis(records : any[]){
+    records = records.filter(taxi => taxi.geom != null)
+    records.forEach(taxiRecord => {
+      const projected = TilesUtils.project(taxiRecord.geom.coordinates[1], taxiRecord.geom.coordinates[0], this.TILE_SIZE)
+      taxiRecord.x = projected.lng
+      taxiRecord.y = projected.lat
+    })
+    this.taxis = records
+  }
+
+  showTaxiTooltip(taxi){
+    console.log(taxi)
+    this.showTooltip("Taxi x")
+  }
+
+
+
+  /* MAIL */
+
+  mails = [
+    
+  ]
+
+  showMailTooltip(mail){
+    console.log(mail)
+    this.showTooltip("Mail x")
+  }
+
 
 
 }
