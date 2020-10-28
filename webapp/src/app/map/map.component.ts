@@ -1,6 +1,10 @@
 import { ArrayType } from '@angular/compiler';
 import { AfterViewChecked, AfterViewInit, Component, Input, OnInit } from '@angular/core';
-import { range } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
+import { range, Subject } from 'rxjs';
+import { WebSocketSubject } from 'rxjs/webSocket';
+import { GroupsService } from '../services/groups/groups.service';
+import { WebsocketService } from '../services/websocket/websocket.service';
 import TilesUtils from '../utils/tiles.utils';
 
 @Component({
@@ -11,7 +15,12 @@ import TilesUtils from '../utils/tiles.utils';
 export class MapComponent implements OnInit, AfterViewInit {
 
 
-  constructor() { }
+  constructor(
+    private toastr: ToastrService,
+    private webSocketService: WebsocketService
+  ) { 
+    
+  }
 
   @Input() groups: any[];
   @Input() category: Number;
@@ -97,6 +106,8 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   loading = false;
+
+  webSocket : {messagesSubject: Subject<any>, socket: WebSocketSubject<any>};
 
 
   refreshTile() {
@@ -263,7 +274,7 @@ export class MapComponent implements OnInit, AfterViewInit {
 
     let errorGettingPosition = (e) => {
       console.log(e)
-
+      this.toastr.error("Se necesitan permisos de ubicación para utilizar la aplicación")
     }
     errorGettingPosition.bind(this)
 
@@ -271,7 +282,8 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   setIntervals() {
-    setInterval(this.getCurrentPosition.bind(this), 500)
+    setInterval(this.getCurrentPosition.bind(this), 1000)
+    //this.setupMapInfoWS()
   }
 
   showTooltip(e) {
@@ -309,9 +321,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     }
   }
 
-  //pointOnMap(projecting = true){
   pointOnMap(latitude, longitude, projecting = true) {
-    //let latitude = this.currentPosition.lat, longitude = this.currentPosition.lng
 
     let projected = { lat: latitude, lng: longitude }
     if (projecting)
@@ -337,6 +347,20 @@ export class MapComponent implements OnInit, AfterViewInit {
       { x: this.currentXY.x, y: this.currentXY.y },
       { x: this.currentXY.x + this.size, y: this.currentXY.y + this.size }
     ]
+  }
+
+  setupMapInfoWS(){
+    this.webSocket = this.webSocketService.connect("guest")
+    console.log(this.webSocket)
+    this.webSocket.socket.asObservable().subscribe(data => {
+      console.log(data)
+    })
+    this.webSocket.socket.next("Prueba")
+    
+  }
+
+  refreshMapInfo(){
+    this.webSocket.socket.next("Prueba")
   }
 
 

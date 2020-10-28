@@ -9,44 +9,35 @@ import { WS_URL } from 'src/environments/environment';
 })
 export class WebsocketService {
 
-  private messagesSubject
-  private socket: WebSocketSubject<any>
-
   constructor() {
-    this.messagesSubject = new Subject()
-   }
-
-  connect(): void {
-
-    if (!this.socket || this.socket.closed) {
-      this.socket = this.newWebSocket
-      const messages = this.socket.pipe(
-        tap({
-          error: error => console.log(error),
-        }), catchError(_ => EMPTY));
-      this.messagesSubject.next(messages);
-    }
   }
 
-  private get newWebSocket() {
-    let token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uIjoiNGE4ZjhkNTEtMGUxNy00YTcxLWExZjYtNjI3MWEzN2QwMGYyIiwiaWF0IjoxNjAzNzY4NTUxLCJleHAiOjE2MDM4NTQ5NTF9.nUXe_mRFHv5H6gCquFl9t7exTi0OJht2g3gG-Dcv9nc"
-    let wsConfig: WebSocketSubjectConfig<any> = 
+  connect(token): {messagesSubject: Subject<any>, socket: WebSocketSubject<any>} {
+    let messagesSubject = new Subject()
+    let socket = this.newWebSocket(token)
+    const messages = socket.pipe(
+      tap({
+        error: error => console.log(error),
+      }), catchError(_ => EMPTY));
+    messagesSubject.next(messages);
+    let returned = {messagesSubject, socket}
+    return returned
+  }
+
+  private newWebSocket(token) {
+    let wsConfig: WebSocketSubjectConfig<any> =
     {
-      protocol: "meeli", 
+      protocol: "meeli",
       url: `${WS_URL}/${token}`
     };
     return webSocket(wsConfig);
   }
-  
-  sendMessage(msg: Object) {
-    this.socket.next(msg);
-  }
 
-  close() {
-    this.socket.complete();
-  }
+  // sendMessage(msg: Object) {
+  //   //this.socket.next(msg);
+  // }
 
-  get messages(){
-    return this.socket.asObservable()
-  }
+  // close() {
+  //   //this.socket.complete();
+  // }
 }

@@ -1,68 +1,6 @@
 <div style="display: flex; flex-direction: column;">
     <h2>Crear nuevo grupo</h2>
 
-    <div *ngIf="addingUser"
-        style="position: absolute; background-color: rgba(0, 0, 0, 0.25); top: 0; left: 0; z-index: 100; width: 100%; height: 100%;"
-        (click)="addingUser = false">
-        <mat-card (click)="$event.stopPropagation()" style="min-width: unset; width: calc(92% - 32px); margin: 20px 4%">
-
-            <h2>Añadir gestor</h2>
-
-
-
-
-            <div style="display: flex;">
-
-                <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto; margin-left: 2.5%;">
-                    <mat-label>Nombre</mat-label>
-                    <input [(ngModel)]="collaborator.name" [ngModelOptions]="{standalone: true}" matInput placeholder="" />
-                </mat-form-field>
-
-                <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto; margin-left: 2.5%;">
-                    <mat-label>Contraseña de gestor</mat-label>
-                    <input [(ngModel)]="collaborator.key" [ngModelOptions]="{standalone: true}" matInput placeholder="" />
-                    <mat-icon matPrefix style="display: flex !important;">
-                        lock
-                    </mat-icon>
-                </mat-form-field>
-
-            </div>
-
-            <div style="display: flex;">
-                <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto; margin-left: 2.5%;">
-                    <mat-label>Nombre del conductor</mat-label>
-                    <input [(ngModel)]="collaborator.customAttributes.driverName" [ngModelOptions]="{standalone: true}" matInput placeholder="" />
-                </mat-form-field>
-                <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto; margin-left: 2.5%;">
-                    <mat-label>Placa del vehículo</mat-label>
-                    <input [(ngModel)]="collaborator.customAttributes.vehiclePlate" [ngModelOptions]="{standalone: true}" matInput placeholder="" />
-                </mat-form-field>
-                
-
-            </div>
-
-            <div style="display: flex;">
-                <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto; margin-left: 2.5%;">
-                    <mat-label>Marca del vehículo</mat-label>
-                    <input [(ngModel)]="collaborator.customAttributes.vehicleBrand" [ngModelOptions]="{standalone: true}" matInput placeholder="" />
-                </mat-form-field>
-                <mat-form-field appearance="standard" style="width: 45%; margin: 0 auto; margin-left: 2.5%;">
-                    <mat-label>Modelo del vehículo</mat-label>
-                    <input [(ngModel)]="collaborator.customAttributes.vehicleModel" [ngModelOptions]="{standalone: true}" matInput placeholder="" />
-                </mat-form-field>
-            </div>
-
-            <div style="display: flex; justify-content: space-around;">
-                <button mat-stroked-button style="margin: 10px 10px; width: 30%; min-width: min-content; "
-                    (click)="addingUser = false">Cancelar </button>
-                <button mat-stroked-button style="margin: 10px 10px; width: 30%; min-width: min-content; "
-                    [disabled]="false" (click)="addUser()" color="accent">Añadir gestor </button>
-            </div>
-
-        </mat-card>
-
-    </div>
-
     <form>
 
         <div style="display: flex;">

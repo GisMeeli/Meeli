@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DialogService } from '../services/dialog/dialog.service';
 import { WebsocketService } from '../services/websocket/websocket.service';
-import { AdmiGroupService } from '../services/admiGroup/admi-group.service';
 import { GroupsService } from '../services/groups/groups.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-taxi',
@@ -11,6 +11,8 @@ import { GroupsService } from '../services/groups/groups.service';
   styleUrls: ['./taxi.component.scss']
 })
 export class TaxiComponent implements OnInit {
+  mobileShowGroups = false
+
   collabOnGroup = undefined
 
   selectedRol = 0
@@ -23,14 +25,15 @@ export class TaxiComponent implements OnInit {
 
   addingNew = false
 
+  loading = false
+
   constructor(
     private dialogService: DialogService,
       private webSocket: WebsocketService,
       private router: Router,
       private route: ActivatedRoute,
       public groupsService: GroupsService,
-      private admiService: AdmiGroupService
-      
+      private toastr: ToastrService,
     ){
       this.route.queryParams
       .subscribe(params => {
@@ -40,21 +43,12 @@ export class TaxiComponent implements OnInit {
           this.collabOnGroup = undefined
       }
     );
-      this.webSocket.connect();
-      this.webSocket.sendMessage({action:1, data:{lat:5.3,lon:4.6}})
-      this.webSocket.messages.subscribe((m) => console.log(m))
     }
     
 
 
 
   ngOnInit(): void {
-    /*this.addGroup("observ")
-    this.selectedRol = 1
-    this.addGroup("gestor")
-    this.selectedRol = 2
-    this.addGroup("admin")
-    this.selectedRol = 0*/
     console.log(this.groupsService.groups)
   }
 
@@ -66,50 +60,58 @@ export class TaxiComponent implements OnInit {
     return this.groupHash == ""
   }
 
-  addGroup(hash){
+  addGroup() {
+    this.loading = true
     //this.groups.push({hash, role: this.selectedRol, visible: true})
     console.log(this.groupHash)
 
     if (this.selectedRol == 0) {
       this.groupsService.getGroupByHashtag(this.groupHash).subscribe(
         data => {
-          console.log("OBSERVADOR")
-          this.groupsService.groups.push({hashtag: data['hashtag'], role: this.selectedRol, visible: true})
+          this.toastr.success(`El grupo #${this.groupHash} se puede ver en este momento`)
+          this.groupsService.groups.push({ hashtag: data['hashtag'], role: this.selectedRol, visible: true })
+          this.loading = false;
         },
         error => {
-          console.log('Error en la consulta');
+          console.log(error);
+          if(error.status == 404){
+            this.toastr.error(`El grupo con hashtag #${this.groupHash} no existe`)
+          }
+          else{
+            this.toastr.error(`Ha ocurrido un error inesperado al cargar el grupo`)
+          }
+          this.loading = false;
         }
       );
     }
-    if (this.selectedRol == 1) {
+    else {
       this.groupsService.getLoginUser(this.selectedRol, this.groupCode, this.groupHash).subscribe(
         data => {
-          console.log("ADMIN")
-          this.groupsService.groups.push({name: data['name'], token: data['token'], hashtag: this.groupHash, role: this.selectedRol, visible: true})
+          this.toastr.success(`El grupo #${this.groupHash} se puede ver en este momento`)
+          this.groupsService.groups.push({ name: data['name'], token: data['token'], hashtag: this.groupHash, role: this.selectedRol, visible: true })
+          this.loading = false;
         },
         error => {
-          console.log('Error en la consulta');
+          console.log(error);
+          if(error.status == 404){
+            this.toastr.error(`El grupo con hashtag #${this.groupHash} no existe`)
+          }
+          else if(error.status == 401){
+            this.toastr.error(`El código para ingresar al grupo #${this.groupHash} es inválido`)
+          }
+          else{
+            this.toastr.error(`Ha ocurrido un error inesperado al cargar el grupo`)
+          }
+          this.loading = false;
         }
       );
-    }
-    if (this.selectedRol == 2) {
-      this.groupsService.getLoginUser(this.selectedRol, this.groupCode, this.groupHash).subscribe(
-        data => {
-          console.log("GESTOR")
-          this.groupsService.groups.push({name: data['name'], token: data['token'], hashtag: this.groupHash, role: this.selectedRol, visible: true})
-        },
-        error => {
-          console.log('Error en la consulta');
-        }
-      );  
     }
     console.log(this.groupsService.groups)
     this.addingNew = false
   }
 
   administrarGrupo(hashtag) {
-    this.admiService.hashtagAdmi = hashtag
-    let dialog = this.admiService.adminGroupDialog()
+    let dialog = this.dialogService.adminGroupDialog(hashtag)
   }
 
   toogleVisibility(group){
@@ -117,11 +119,11 @@ export class TaxiComponent implements OnInit {
   }
 
   createGroup(){
-    let dialog = this.dialogService.createGroupDialog()
+    let dialog = this.dialogService.createGroupDialog(2)
   }
 
   manageGroup(group){
-    this.router.navigate(["mail"], {queryParams: {manage: group.hashtag}})
+    this.router.navigate(["taxi"], {queryParams: {manage: group.hashtag}})
   }
 
   sendMessage(message){

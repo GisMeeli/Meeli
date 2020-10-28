@@ -18,6 +18,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { TaxiCollaboratorComponent } from './taxi-collaborator/taxi-collaborator.component';
 import { MailCollaboratorComponent } from './mail-collaborator/mail-collaborator.component';
 import { AdminGroupComponent } from './admin-group/admin-group.component';
+import { ToastrModule } from 'ngx-toastr';
 
 
 
@@ -41,6 +42,9 @@ import { AdminGroupComponent } from './admin-group/admin-group.component';
     MaterialModule,
     FormsModule,
     HttpClientModule,
+    ToastrModule.forRoot({
+      positionClass: 'toast-bottom-right'
+    })
   ],
   entryComponents: [
     CreateGroupComponent

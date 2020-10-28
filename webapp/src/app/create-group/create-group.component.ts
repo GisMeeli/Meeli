@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnInit } from '@angular/core';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { ToastrService } from 'ngx-toastr';
 import { GroupsService } from '../services/groups/groups.service';
 
 @Component({
@@ -9,69 +10,24 @@ import { GroupsService } from '../services/groups/groups.service';
 })
 export class CreateGroupComponent implements OnInit {
 
-  columns = ["name", "accessCode", "actions"]
-
-  users = [
-    // {name: "Nombre 1", accessCode: "estecode"},
-    // {name: "Nombre 2", accessCode: "estecode"},
-    // {name: "Nombre 3", accessCode: "estecode"},
-    // {name: "Nombre 4", accessCode: "estecode"},
-    // {name: "Nombre 5", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-  ]
-
   public group;
-  public collaborator;
-  addingUser = false
 
 
-  constructor(private dialogRef: MatDialogRef<CreateGroupComponent>, private groupsService: GroupsService) { 
+  constructor(
+    private dialogRef: MatDialogRef<CreateGroupComponent>, 
+    private groupsService: GroupsService,
+    private toastr: ToastrService,
+    @Inject(MAT_DIALOG_DATA) public category: Number) { 
     this.group = {
       hashtag: '',
       name: '',
       description: '',
       adminKey: '',
-      category: 1
-    }
-    this.collaborator = {
-      name: '',
-      key: '',
-	    customAttributes: {
-		    driverName: '',
-		    vehiclePlate: '',
-		    vehicleBrand: '',
-		    vehicleModel: ''
-	    }
+      category: this.category
     }
   }
 
   ngOnInit(): void {
-  }
-
-  addUser(){
-    this.addingUser = false
-    console.log(JSON.stringify(this.collaborator))
-    this.groupsService.createCollaborator(this.collaborator, this.group.hashtag).subscribe(
-      data => {
-        this.users.push({name: data.valueOf()['name'], key: data.valueOf()['key']})
-        console.log(JSON.stringify(data))
-      },
-      error => {
-        console.log('Error en la consulta');
-      }
-    );
   }
   
   onNoClick(){
@@ -79,13 +35,16 @@ export class CreateGroupComponent implements OnInit {
   }
 
   onYesClick(){
-    console.log(JSON.stringify(this.group))
+    console.log(this.group)
     this.groupsService.createGroup(this.group).subscribe(
       data => {
-        console.log(JSON.stringify(data))
+        console.log(data)
+        this.dialogRef.close(data)
+        this.toastr.success(`Se ha creado el grupo ${this.group.hashtag}`)
       },
       error => {
-        console.log('Error en la consulta');
+        console.log(error);
+        this.toastr.error(`Ha ocurrido un error al crear el grupo ${this.group.hashtag}`)
       }
     );
   }

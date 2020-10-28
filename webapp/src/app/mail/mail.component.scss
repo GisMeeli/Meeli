@@ -1,8 +1,9 @@
 .app-container {
     display: flex;
     flex-direction: row;
-    height: calc(100vh - 64px);
+    height: calc(100vh - 68px);
     background-color: rgb(245, 245, 245);
+    position: relative;
 }
 
 
@@ -17,11 +18,18 @@
 }
 
 .card {
-    height: 80%;
     width: 80%;
     margin: auto;
     display: flex;
     flex-direction: column;
+    height: 85%; 
+    min-height: 300px; 
+    min-width: 280px; 
+    position: relative;
+}
+
+.mobile-groups {
+    display: none;
 }
 
 ::ng-deep .mat-button-toggle-appearance-standard .mat-button-toggle-label-content{
@@ -35,10 +43,30 @@
 
 @media only screen and (max-width: 599px) {
     .app-container {
-        height: calc(100vh - 56px);
+        height: calc(100vh - 60px);
     }
 
     .container {
         width: 0;
+    }
+
+    .card.visible {
+        position: absolute;
+        z-index: 100;
+        width: calc(100% - 32px);
+        height: calc(100% - 32px);
+        display: flex;
+    }
+
+    .card {
+        display: none;
+    }
+
+    .mobile-groups {
+        display: block;
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        z-index: 200;
     }
 }

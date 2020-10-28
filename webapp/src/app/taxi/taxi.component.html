@@ -1,12 +1,15 @@
 <mat-toolbar color="accent">
     Meeli | TAXI
   </mat-toolbar>
+  <mat-progress-bar mode="indeterminate" color="accent" *ngIf="loading"></mat-progress-bar>
+  <div style="height: 4px; width: 100%; background-color:#ff4081;"  *ngIf="!loading"></div>
   <section class="app-container">
     <section class="container">
-        <mat-card class="card" style="height: 85%; min-height: 300px; min-width: 280px; position: relative;" *ngIf="collabOnGroup != undefined">
-            <app-taxi-collaborator (sendMessage)="sendMessage($event)"></app-taxi-collaborator>
+        <button mat-raised-button class="mobile-groups" color="primary" (click)="mobileShowGroups = !mobileShowGroups">{{mobileShowGroups? "Atrás": "Grupos"}}</button>
+        <mat-card class="card" *ngIf="collabOnGroup != undefined" [ngClass]="mobileShowGroups? 'visible': ''">
+            <app-mail-collaborator (sendMessage)="sendMessage($event)"></app-mail-collaborator>
         </mat-card>
-        <mat-card class="card" style="height: 85%; min-height: 300px; min-width: 280px; position: relative;">
+        <mat-card class="card" *ngIf="collabOnGroup == undefined" [ngClass]="mobileShowGroups? 'visible': ''">
             <div *ngIf="addingNew"
                 (click)="addingNew = false"
                 style="background-color: rgba(0, 0, 0, 0.251); width: 100%; height: 100%; position: absolute; z-index: 100; top: 0; left: 0; border-radius: 4px;">
@@ -44,9 +47,9 @@
     
                     <div style="display: flex;">
                         <button mat-stroked-button style="margin: 10px 10px; width: 30%; min-width: min-content; "
-                            (click)="addingNew = false">Cancelar </button>
+                            (click)="addingNew = false;">Cancelar </button>
                         <button mat-stroked-button style="margin: 10px 10px; width: 30%; min-width: min-content; "
-                            [disabled]="disabledSeeGroup" (click)="addGroup()">Ver grupo </button>
+                            [disabled]="disabledSeeGroup" (click)="addGroup();">Ver grupo </button>
                     </div>
     
                 </mat-card>
@@ -54,7 +57,7 @@
     
             <div style="display: flex; width: 100%;">
                 <button mat-stroked-button style="margin: 10px auto; width: 45%; min-width: min-content; "
-                    (click)="addingNew = true">Ver otro grupo </button>
+                    (click)="this.selectedRol = 0; addingNew = true">Ver otro grupo </button>
                 <button mat-stroked-button style="margin: 10px auto; width: 45%; min-width: min-content; "
                     (click)="createGroup()">Crear grupo</button>
     

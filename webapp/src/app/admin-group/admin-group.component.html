@@ -1,7 +1,7 @@
 <div *ngIf="addingUser"
-        style="position: absolute; background-color: rgba(0, 0, 0, 0.25); top: 0; left: 0; z-index: 100; width: 100%; height: 90%;"
+        style="position: absolute; background-color: rgba(0, 0, 0, 0.25); top: 0; left: 0; z-index: 100; width: 100%; height: 100%; display: flex;"
         (click)="addingUser = false">
-        <mat-card (click)="$event.stopPropagation()" style="min-width: unset; width: calc(92% - 32px); margin: 20px 4%">
+        <mat-card (click)="$event.stopPropagation()" style="min-width: unset; width: calc(92% - 32px); margin: auto">
 
             <h2>Añadir gestor</h2>
 

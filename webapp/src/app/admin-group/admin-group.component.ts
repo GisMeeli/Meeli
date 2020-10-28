@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { AdmiGroupService } from '../services/admiGroup/admi-group.service';
+import { Component, Inject, OnInit } from '@angular/core';
 import { GroupsService } from '../services/groups/groups.service';
 import {FormControl} from '@angular/forms';
 import { MatListOption } from '@angular/material/list'
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-admin-group',
@@ -11,37 +12,19 @@ import { MatListOption } from '@angular/material/list'
 })
 export class AdminGroupComponent implements OnInit {
   
-  columns = ["name", "accessCode", "actions"]
   addingUser = false
 
-  public users; //[
-    // {name: "Nombre 1", accessCode: "estecode"},
-    // {name: "Nombre 2", accessCode: "estecode"},
-    // {name: "Nombre 3", accessCode: "estecode"},
-    // {name: "Nombre 4", accessCode: "estecode"},
-    // {name: "Nombre 5", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-  //]
+  public users;
 
   public collaborator;
-  public hashtag;
   public listaGestores;
   gestoresEliminar = []
   disableSelect = new FormControl(true);
 
-  constructor(private admiService: AdmiGroupService, private groupsService: GroupsService) { 
+  constructor(
+    private groupsService: GroupsService,
+    private toastr: ToastrService,
+    @Inject(MAT_DIALOG_DATA) public hashtag: String) { 
     this.collaborator = {
       name: '',
       key: '',
@@ -59,7 +42,6 @@ export class AdminGroupComponent implements OnInit {
       key: '',
       creation: ''
     }
-    this.hashtag = admiService.hashtagAdmi
     this.cargarListaGestores()
     
   }
@@ -73,14 +55,15 @@ export class AdminGroupComponent implements OnInit {
     this.groupsService.createCollaborator(this.collaborator, this.hashtag).subscribe(
       data => {
         //this.users.push({name: data.valueOf()['name'], accessCode: data.valueOf()['key']})
-        console.log(JSON.stringify(data))
+        this.toastr.success("Se ha agregado el usuario")
         this.cargarListaGestores()
       },
       error => {
-        console.log('Error en la consulta');
+        console.log(error);
+        this.toastr.error("Ha ocurrido un error al agregar el gestor")
+        
       }
     );
-    console.log("USUARIOS" ,this.users)
   }
 
   cargarListaGestores() {
@@ -103,17 +86,17 @@ export class AdminGroupComponent implements OnInit {
   }
 
   eliminarGestor(){
-    //console.log("Lista completa>" + this.users)
-    //console.log("Lista elemntos a eliminar>" + this.gestoresEliminar)
     this.gestoresEliminar.map(gestor => {
-      this.groupsService.deleteCollaborator(this.admiService.hashtagAdmi, gestor.id).subscribe(
+      this.groupsService.deleteCollaborator(this.hashtag, gestor.id).subscribe(
         result => {
           console.log(result)
+          this.toastr.success(`Se ha eliminado el gestor ${gestor.name}`)
           this.cargarListaGestores()
           this.disableSelect.setValue(true);
         },
         error => {
-          console.log('Error en la consulta');
+          console.log(error);
+          this.toastr.error(`Error al eliminar el gestor ${gestor.name}`)
         }
       );
     })
