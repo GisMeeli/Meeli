@@ -41,6 +41,8 @@ export class MeeliDao implements MeeliRepository {
       [JSON.stringify(request.groups)]
     );
 
+    pg.release();
+
     return result;
   }
 
