@@ -1,3 +1,5 @@
+import { GroupCategoryModel } from './group-category.model';
+
 export interface MeeliRequest {
   action: MeeliAction;
   data: any;
@@ -5,7 +7,8 @@ export interface MeeliRequest {
 
 export enum MeeliAction {
   UpdateLocation = 1,
-  UpdateStatus = 2
+  UpdateStatus = 2,
+  GuestGetRealTimeInfo = 4
 }
 
 export interface MeeliPoint {
@@ -16,4 +19,9 @@ export interface MeeliPoint {
 export interface MeeliTaxiStatusUpdate {
   isAvailable: boolean;
   rideCount: number;
+}
+
+export interface MeeliGuestRealtimeRequest {
+  category: GroupCategoryModel;
+  groups: Array<string>;
 }

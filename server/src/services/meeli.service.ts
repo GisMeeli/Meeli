@@ -1,6 +1,6 @@
 import { Service } from '../abstractions/service';
 import * as ws from 'websocket';
-import { MeeliAction, MeeliPoint, MeeliRequest } from '../models/meeli.models';
+import { MeeliAction, MeeliGuestRealtimeRequest, MeeliPoint, MeeliRequest } from '../models/meeli.models';
 import { MeeliRepository } from '../repositories/meeli.repository';
 import { AuthenticatedSessionModel } from '../models/authenticated-session.model';
 import { GroupsService } from './groups.service';
@@ -27,7 +27,11 @@ export class MeeliService implements Service {
     const req = JSON.parse(msg.utf8Data) as MeeliRequest;
     let res: any;
 
-    res = { result: 'done' };
+    switch (req.action) {
+      case MeeliAction.GuestGetRealTimeInfo:
+        res = await this.getMeeliGuestRealtime(req.data as MeeliGuestRealtimeRequest);
+        break;
+    }
 
     return res;
   }
@@ -41,5 +45,9 @@ export class MeeliService implements Service {
 
   async updateCollaboratorLocation(auth: AuthenticatedSessionModel, point: MeeliPoint): Promise<void> {
     await this.repository.updateCollaboratorLocation(auth, point);
+  }
+
+  async getMeeliGuestRealtime(req: MeeliGuestRealtimeRequest): Promise<any> {
+    return await this.repository.getGuestRealtime(req);
   }
 }

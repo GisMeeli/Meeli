@@ -1,7 +1,7 @@
 import { AuthenticatedSessionModel } from '../../models/authenticated-session.model';
 import { GroupCategoryModel } from '../../models/group-category.model';
 import { GroupCollaboratorAttributesModel } from '../../models/group-collaborator-attributes.model';
-import { MeeliPoint } from '../../models/meeli.models';
+import { MeeliGuestRealtimeRequest, MeeliPoint } from '../../models/meeli.models';
 import { MeeliRepository } from '../../repositories/meeli.repository';
 import { PostgresConnectionManager } from './connection-manager';
 
@@ -34,14 +34,25 @@ export class MeeliDao implements MeeliRepository {
     pg.release();
   }
 
+  async getGuestRealtime(request: MeeliGuestRealtimeRequest): Promise<any> {
+    const pg = await PostgresConnectionManager.getPool().connect();
+    const result = await pg.query(
+      `SELECT ${request.category == GroupCategoryModel.Mail ? 'mail' : 'taxi'}.get_realtime_info($1);`,
+      [JSON.stringify(request.groups)]
+    );
+
+    return result;
+  }
+
   async updateCollaboratorLocation(auth: AuthenticatedSessionModel, location: MeeliPoint): Promise<any> {
     const pg = await PostgresConnectionManager.getPool().connect();
 
-    await pg.query(`UPDATE ${this.getSchema(auth)}.realtime SET geom = ST_SetSRID(ST_MakePoint($1, $2), 4326), last_seen = NOW() WHERE session = $3;`, [
-      location.lon,
-      location.lat,
-      auth.sessionId
-    ]);
+    await pg.query(
+      `UPDATE ${this.getSchema(
+        auth
+      )}.realtime SET geom = ST_SetSRID(ST_MakePoint($1, $2), 4326), last_seen = NOW() WHERE session = $3;`,
+      [location.lon, location.lat, auth.sessionId]
+    );
 
     pg.release();
   }
