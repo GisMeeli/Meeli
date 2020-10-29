@@ -6,6 +6,7 @@ import { MeeliRepository } from '../../repositories/meeli.repository';
 import { PostgresConnectionManager } from './connection-manager';
 
 export class MeeliDao implements MeeliRepository {
+  
   private getSchema(auth: AuthenticatedSessionModel): string {
     return auth.groupCategory == GroupCategoryModel.Mail ? 'mail' : 'taxi';
   }
@@ -30,6 +31,15 @@ export class MeeliDao implements MeeliRepository {
         collaboratorAttributes.vehicleModel
       ]
     );
+
+    pg.release();
+  }
+
+  async endSession(auth: AuthenticatedSessionModel): Promise<void> {
+    await this.updateCollaboratorLocation(auth, { lat: 0.0, lon: 0.0 } as MeeliPoint);
+
+    const pg = await PostgresConnectionManager.getPool().connect();
+    await pg.query(`DELETE FROM ${this.getSchema(auth)}.realtime WHERE session = $1;`, [auth.sessionId]);
 
     pg.release();
   }

@@ -7,8 +7,11 @@ export interface MeeliRepository {
     auth: AuthenticatedSessionModel,
     collaboratorAttributes: GroupCollaboratorAttributesModel
   ): Promise<void>;
+  
+  endSession(auth: AuthenticatedSessionModel): Promise<void>;
 
   getGuestRealtime(request: MeeliGuestRealtimeRequest): Promise<any>;
 
   updateCollaboratorLocation(auth: AuthenticatedSessionModel, location: MeeliPoint): Promise<any>;
+
 }

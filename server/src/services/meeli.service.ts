@@ -50,4 +50,8 @@ export class MeeliService implements Service {
   async getMeeliGuestRealtime(req: MeeliGuestRealtimeRequest): Promise<any> {
     return await this.repository.getGuestRealtime(req);
   }
+
+  async endSession(auth: AuthenticatedSessionModel): Promise<void> {
+    await this.repository.endSession(auth);
+  }
 }

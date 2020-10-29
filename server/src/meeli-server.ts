@@ -140,7 +140,9 @@ export class MeeliServer {
 
               connection.sendUTF(JSON.stringify(result));
             })
-            .on('close', (code: number, description: string) => {})
+            .on('close', (code: number, description: string) => {
+              console.log("Gest session finished.");
+            })
             .on('error', (err: Error) => {});
         } else {
           const auth = await this.sessionsService.authenticateSession(token);
@@ -160,8 +162,10 @@ export class MeeliServer {
 
                 connection.sendUTF(JSON.stringify(result));
               })
-              .on('close', (code: number, description: string) => {
-                //
+              .on('close', async (code: number, description: string) => {
+                await this.meeliService.endSession(auth);
+                
+                console.log(`Collaborator session finished: ${auth.sessionId}`);
               })
               .on('error', (err: Error) => {
                 console.log(err);
