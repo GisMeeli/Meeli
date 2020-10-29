@@ -1,7 +1,12 @@
 import { AuthenticatedSessionModel } from '../../models/authenticated-session.model';
 import { GroupCategoryModel } from '../../models/group-category.model';
 import { GroupCollaboratorAttributesModel } from '../../models/group-collaborator-attributes.model';
-import { MeeliGuestRealtimeRequest, MeeliPoint } from '../../models/meeli.models';
+import {
+  MeeliGuestRealtimeRequest,
+  MeeliMailStatusUpdate,
+  MeeliPoint,
+  MeeliTaxiStatusUpdate
+} from '../../models/meeli.models';
 import { MeeliRepository } from '../../repositories/meeli.repository';
 import { PostgresConnectionManager } from './connection-manager';
 
@@ -20,7 +25,7 @@ export class MeeliDao implements MeeliRepository {
     );
 
     pg.release();
-    
+
     console.log(`Se han eliminado ${mail.rowCount + taxi.rowCount} sesiones antiguas.`);
   }
 
@@ -84,5 +89,41 @@ export class MeeliDao implements MeeliRepository {
     );
 
     pg.release();
+  }
+
+  async updateMailCollaboratorStatus(auth: AuthenticatedSessionModel, update: MeeliMailStatusUpdate): Promise<boolean> {
+    if (update.newDelivery) {
+      const pg = await PostgresConnectionManager.getPool().connect();
+
+      await pg.query(`UPDATE mail.realtime SET delivery_count = delivery_count + 1 WHERE session = $1;`, [
+        auth.sessionId
+      ]);
+      pg.release();
+
+      return true;
+    }
+    return false;
+  }
+  async updateTaxiCollaboratorStatus(auth: AuthenticatedSessionModel, update: MeeliTaxiStatusUpdate): Promise<boolean> {
+    try {
+      const pg = await PostgresConnectionManager.getPool().connect();
+
+      if (update.isAvailable) {
+        await pg.query('UPDATE taxi.realtime SET is_available = $1 WHERE session = $2;', [true, auth.sessionId]);
+      } else {
+        await pg.query('UPDATE taxi.realtime SET is_available = $1, ride_count = ride_count + 1 WHERE session = $2;', [
+          false,
+          auth.sessionId
+        ]);
+      }
+
+      pg.release();
+
+      return true;
+    } catch (err) {
+      console.log(err);
+
+      return false;
+    }
   }
 }

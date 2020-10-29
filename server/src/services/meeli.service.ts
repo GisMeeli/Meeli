@@ -1,9 +1,17 @@
 import { Service } from '../abstractions/service';
 import * as ws from 'websocket';
-import { MeeliAction, MeeliGuestRealtimeRequest, MeeliPoint, MeeliRequest } from '../models/meeli.models';
+import {
+  MeeliAction,
+  MeeliGuestRealtimeRequest,
+  MeeliMailStatusUpdate,
+  MeeliPoint,
+  MeeliRequest,
+  MeeliTaxiStatusUpdate
+} from '../models/meeli.models';
 import { MeeliRepository } from '../repositories/meeli.repository';
 import { AuthenticatedSessionModel } from '../models/authenticated-session.model';
 import { GroupsService } from './groups.service';
+import { GroupCategoryModel } from '../models/group-category.model';
 
 export class MeeliService implements Service {
   constructor(private repository: MeeliRepository, private groupsService: GroupsService) {}
@@ -15,6 +23,15 @@ export class MeeliService implements Service {
     switch (req.action) {
       case MeeliAction.UpdateLocation:
         await this.updateCollaboratorLocation(auth, req.data as MeeliPoint);
+        res = { result: 'done' };
+        break;
+      case MeeliAction.UpdateStatus:
+        if (auth.groupCategory == GroupCategoryModel.Mail) {
+          await this.updateMailStatus(auth, req.data as MeeliMailStatusUpdate);
+        }
+        if (auth.groupCategory == GroupCategoryModel.Taxi) {
+          await this.updateTaxiStatus(auth, req.data as MeeliTaxiStatusUpdate);
+        }
 
         res = { result: 'done' };
         break;
@@ -57,5 +74,13 @@ export class MeeliService implements Service {
 
   async removeOldMeeliSessions() {
     await this.repository.removeOldMeeliSessions();
+  }
+
+  async updateMailStatus(auth: AuthenticatedSessionModel, update: MeeliMailStatusUpdate): Promise<void> {
+    await this.repository.updateMailCollaboratorStatus(auth, update);
+  }
+
+  async updateTaxiStatus(auth: AuthenticatedSessionModel, update: MeeliTaxiStatusUpdate): Promise<void> {
+    await this.repository.updateTaxiCollaboratorStatus(auth, update);
   }
 }

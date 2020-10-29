@@ -16,9 +16,12 @@ export interface MeeliPoint {
   lon: number;
 }
 
+export interface MeeliMailStatusUpdate {
+  newDelivery: boolean;
+}
+
 export interface MeeliTaxiStatusUpdate {
   isAvailable: boolean;
-  rideCount: number;
 }
 
 export interface MeeliGuestRealtimeRequest {
