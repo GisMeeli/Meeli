@@ -1,3 +1,4 @@
+import { NgxMatDatetimePicker } from '@angular-material-components/datetime-picker';
 import { DatePipe } from '@angular/common';
 import { ArrayType } from '@angular/compiler';
 import { AfterViewChecked, AfterViewInit, Component, Input, OnDestroy, OnInit } from '@angular/core';
@@ -50,9 +51,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setIntervals()
   }
 
-  circleClick() {
-    console.log("Holis")
-
+  get date(){
+    return new Date();
   }
 
   tile = "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
@@ -117,6 +117,12 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   webSocket: { messagesSubject: Subject<any>, socket: WebSocketSubject<any> };
 
   boundingBox: any[][]
+
+  showingFilter = false
+
+  interval = undefined
+
+  applyingFilter = false
 
 
   refreshTile() {
@@ -257,7 +263,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   setOnCurrentPosition() {
     let setOnCurrentPosition = (p) => {
-      console.log(p)
       //this.setLocationLatLng(p.coords.latitude, p.coords.longitude)
       let projected = TilesUtils.project(p.coords.latitude, p.coords.longitude, this.TILE_SIZE)
       this.currentPosition = { lng: p.coords.longitude, lat: p.coords.latitude, x: projected.lng, y: projected.lat }
@@ -302,7 +307,11 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   focus() {
+    if (this.boundingBox == undefined)
+      return
+
     this.loading = true;
+
     let lat1 = this.boundingBox[0][1], lng1 = this.boundingBox[0][0]
     let lat2 = this.boundingBox[1][1], lng2 = this.boundingBox[1][0]
 
@@ -359,38 +368,75 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   setupMapInfoWS() {
     this.webSocket = this.webSocketService.connect("guest")
-    console.log(this.webSocket)
     this.webSocket.socket.asObservable().subscribe(data => {
       const { records, bounding_box } = data.rows[0].get_realtime_info
-      this.showTaxis(records)
-      if(bounding_box != null)
-        this.boundingBox = [bounding_box.coordinates[0][0], bounding_box.coordinates[0][2]]
+      if (records != null){
+        if(this.category == 2)
+          this.showTaxis(records)
+        else
+          this.showMails(records)
+        
+      }
+      if (bounding_box != null)
+        if (bounding_box.type == 'Polygon')
+          this.boundingBox = [bounding_box.coordinates[0][0], bounding_box.coordinates[0][2]]
+        else
+          this.boundingBox = [bounding_box.coordinates, bounding_box.coordinates]
     })
-    if (this.groups.length > 0)
+    let visibleGroups = this.groups.filter((group, i) => group.visible && this.groups.indexOf(group) == i)
+    if (visibleGroups.length > 0)
       this.webSocket.socket.next(
         {
           action: Number(4),
           data: {
             category: Number(this.category),
-            groups: this.groups.filter(group => group.visible).map(group => group.hashtag)
+            groups: visibleGroups.map(group => group.hashtag)
           }
         })
+    else {
+      this.mails = []
+      this.taxis = []
+    }
 
-    setInterval(this.refreshMapInfo.bind(this), 5000)
+    this.interval = setInterval(this.refreshMapInfo.bind(this), 1000)
 
   }
 
   refreshMapInfo() {
-    if (this.groups.length > 0)
+    let visibleGroups = this.groups.filter((group, i) => group.visible && this.groups.indexOf(group) == i)
+    if (visibleGroups.length > 0)
       this.webSocket.socket.next(
         {
           action: Number(4),
           data: {
             category: Number(this.category),
-            groups: this.groups.filter(group => group.visible).map(group => group.hashtag)
+            groups: visibleGroups.map(group => group.hashtag)
           }
         }
       )
+    else {
+      this.mails = []
+      this.taxis = []
+    }
+  }
+
+  search(picker1: NgxMatDatetimePicker<any>, picker2: NgxMatDatetimePicker<any>){
+    let start = new Date(picker1._selected).toISOString()
+    let end = new Date(picker2._selected).toISOString()
+    this.showingFilter = false;
+    this.stopInterval();
+    this.applyingFilter = true;
+  }
+
+  stopInterval(){
+    clearInterval(this.interval)
+    this.taxis = []
+    this.mails = []
+  }
+
+  clearSearch(){
+    this.applyingFilter = false;
+    this.interval = setInterval(this.refreshMapInfo.bind(this), 1000)
   }
 
   /* TAXIS */
@@ -430,7 +476,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       `<div style="text-align: center; line-height: 1.7">
         <b>${taxi.driver_name}</b> <br>
         <span>#${taxi.hashtag}</span> <br>
-        <b>${taxi.is_available? "Libre": "En viaje"}</b> <br>
+        <b>${taxi.is_available ? "Libre" : "En viaje"}</b> <br>
         <b>Placa: ${taxi.vehicle_plate}</b> <br><br>
 
         <span>Última actualización: ${this.datePipe.transform(taxi.last_seen + "+00:00", 'h:mm:ss a')}
@@ -444,6 +490,16 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   mails = [
 
   ]
+
+  showMails(records){
+    records = records.filter(mail => mail.geom != null)
+    records.forEach(mailRecord => {
+      const projected = TilesUtils.project(mailRecord.geom.coordinates[1], mailRecord.geom.coordinates[0], this.TILE_SIZE)
+      mailRecord.x = projected.lng
+      mailRecord.y = projected.lat
+    })
+    this.mails = records
+  }
 
   showMailTooltip(mail) {
     console.log(mail)

@@ -15,10 +15,9 @@ import { MailComponent } from './mail/mail.component';
 import { TaxiComponent } from './taxi/taxi.component';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
-import { TaxiCollaboratorComponent } from './taxi-collaborator/taxi-collaborator.component';
-import { MailCollaboratorComponent } from './mail-collaborator/mail-collaborator.component';
 import { AdminGroupComponent } from './admin-group/admin-group.component';
 import { ToastrModule } from 'ngx-toastr';
+
 
 
 
@@ -29,8 +28,6 @@ import { ToastrModule } from 'ngx-toastr';
     CreateGroupComponent,
     MailComponent,
     TaxiComponent,
-    TaxiCollaboratorComponent,
-    MailCollaboratorComponent,
     AdminGroupComponent
   ],
   imports: [

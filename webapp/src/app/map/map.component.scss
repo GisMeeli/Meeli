@@ -35,6 +35,31 @@
     left: 5px;
 }
 
+.controls-container.bottom{
+    bottom: 5px;
+    top: unset;
+    flex-direction: row;
+}
+
+
+.bottom-panel {
+    position: absolute;
+    bottom: -70px;
+    height: 70px;
+    overflow: hidden;
+    transition: 0.7s;
+    width: 100%;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.bottom-panel.visible {
+    bottom: 0px;
+}
+
 @media only screen and (max-width: 599px) {
     .map-container {
         width: 100vw;

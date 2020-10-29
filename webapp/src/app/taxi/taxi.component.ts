@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DialogService } from '../services/dialog/dialog.service';
 import { WebsocketService } from '../services/websocket/websocket.service';
@@ -13,10 +13,8 @@ import GeolocationUtils from '../utils/geolocation.utils';
   templateUrl: './taxi.component.html',
   styleUrls: ['./taxi.component.scss']
 })
-export class TaxiComponent implements OnInit {
+export class TaxiComponent implements OnInit, OnDestroy {
   mobileShowGroups = false
-
-  collabOnGroup = undefined
 
   selectedRol = 0
 
@@ -30,39 +28,36 @@ export class TaxiComponent implements OnInit {
 
   loading = false
 
-  collabSockets = []
+  collabSockets : {messagesSubject: Subject<any>, socket: WebSocketSubject<any>, hashtag: string}[] = []
 
   interval = undefined
 
   constructor(
     private dialogService: DialogService,
       private webSocketService: WebsocketService,
-      private router: Router,
-      private route: ActivatedRoute,
       public groupsService: GroupsService,
       private toastr: ToastrService,
     ){
-      this.route.queryParams
-      .subscribe(params => {
-        if(params.manage)
-          this.collabOnGroup = params.manage
-        else 
-          this.collabOnGroup = undefined
-      }
-    );
     }
+
+
+  ngOnDestroy(): void {
+    this.collabSockets.forEach(
+      (e: {messagesSubject: Subject<any>, socket: WebSocketSubject<any>, hashtag: string}) => e.socket.complete()
+    )
+  }
     
 
 
 
   ngOnInit(): void {
-    document.addEventListener("visibilitychange", (() => {
-      if (document.visibilityState === 'visible') {
-        this.refreshInverval()
-      } else {
-        this.stopInterval();
-      }
-    }).bind(this));
+    // document.addEventListener("visibilitychange", (() => {
+    //   if (document.visibilityState === 'visible') {
+    //     this.refreshInverval()
+    //   } else {
+    //     this.stopInterval();
+    //   }
+    // }).bind(this));
   }
 
   changeSelectedRol(value){
@@ -102,10 +97,10 @@ export class TaxiComponent implements OnInit {
       this.groupsService.getLoginUser(this.selectedRol, this.groupCode, this.groupHash).subscribe(
         data => {
           this.toastr.success(`El grupo #${this.groupHash} se puede ver en este momento`)
-          this.groupsService.groups.push({ name: data['name'], token: data['token'], hashtag: this.groupHash, role: this.selectedRol, visible: true })
+          this.groupsService.groups.push({ name: data['name'], token: data['token'], hashtag: this.groupHash, role: this.selectedRol, visible: true, is_available: true })
           if(this.selectedRol == 2){
             console.log("Se agrega")
-            this.collabSockets.push({...this.webSocketService.connect(data['token']), group: this.groupHash})
+            this.collabSockets.push({...this.webSocketService.connect(data['token']), hashtag: this.groupHash})
             this.refreshInverval()
           }
           this.loading = false;
@@ -141,21 +136,23 @@ export class TaxiComponent implements OnInit {
     let dialog = this.dialogService.createGroupDialog(2)
   }
 
-  manageGroup(group){
-    this.router.navigate(["taxi"], {queryParams: {manage: group.hashtag}})
-  }
-
-  sendMessage(message){
-    console.log(message)
-  }
-
   async sendCollaboratorInfo(){
     let currentLocation : any = await GeolocationUtils.getCurrentLocation()
     this.collabSockets.forEach((e: {messagesSubject: Subject<any>, socket: WebSocketSubject<any>, hashtag: string}) => {
       e.socket.next({action: 1, data: {lat: currentLocation.lat, lon: currentLocation.lng}})
       e.socket.asObservable().subscribe(response => {
-        console.log(response)
+        
       })
+    })
+  }
+
+  toggleTrip(group){
+    group.is_available = !group.is_available
+    this.collabSockets.find(g => g.hashtag == group.hashtag).socket.next({
+      action: 2,
+      data: {
+        isAvailable: group.is_available
+      }
     })
   }
 
@@ -164,13 +161,24 @@ export class TaxiComponent implements OnInit {
       clearInterval(this.interval)
     }
     this.sendCollaboratorInfo()
-    this.interval = setInterval(this.sendCollaboratorInfo.bind(this), 5000)
+    this.interval = setInterval(this.sendCollaboratorInfo.bind(this), 1000)
   }
 
   stopInterval(){
     if(this.interval)
       clearInterval(this.interval)
     this.interval = undefined;
+  }
+
+  closeGroup(group){
+    this.groupsService.groups = this.groupsService.groups.filter(e => !(e == group))
+    this.collabSockets = this.collabSockets.filter((e: {messagesSubject: Subject<any>, socket: WebSocketSubject<any>, hashtag: string}) => {
+      if(e.hashtag == group.hashtag){
+        e.socket.complete()
+        return false
+      }
+      return true
+    })
   }
 
 

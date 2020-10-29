@@ -17,8 +17,6 @@ import GeolocationUtils from '../utils/geolocation.utils';
 })
 export class MailComponent implements OnInit {
 
-  collabOnGroup = undefined
-
   selectedRol = 0
 
   groupHash = ""
@@ -32,7 +30,7 @@ export class MailComponent implements OnInit {
 
   loading = false
 
-  collabSockets = []
+  collabSockets : {messagesSubject: Subject<any>, socket: WebSocketSubject<any>, hashtag: string}[] = []
 
   interval = undefined
 
@@ -41,20 +39,10 @@ export class MailComponent implements OnInit {
   constructor(
     private dialogService: DialogService,
     private webSocketService: WebsocketService,
-    private router: Router,
-    private route: ActivatedRoute,
     public groupsService: GroupsService,
     private toastr: ToastrService
 
   ) {
-    this.route.queryParams
-      .subscribe(params => {
-        if (params.manage)
-          this.collabOnGroup = params.manage
-        else
-          this.collabOnGroup = undefined
-      }
-      );
   }
 
   ngOnInit(): void {
@@ -99,7 +87,7 @@ export class MailComponent implements OnInit {
           this.toastr.success(`El grupo #${this.groupHash} se puede ver en este momento`)
           this.groupsService.groups.push({ name: data['name'], token: data['token'], hashtag: this.groupHash, role: this.selectedRol, visible: true })
           if(this.selectedRol == 2){
-            this.collabSockets.push({...this.webSocketService.connect(data['token']), group: this.groupHash})
+            this.collabSockets.push({...this.webSocketService.connect(data['token']), hashtag: this.groupHash})
             this.refreshInverval()
           }
           this.loading = false;
@@ -135,14 +123,6 @@ export class MailComponent implements OnInit {
     let dialog = this.dialogService.createGroupDialog(1)
   }
 
-  manageGroup(group) {
-    this.router.navigate(["mail"], { queryParams: { manage: group.hashtag } })
-  }
-
-  sendMessage(message) {
-    console.log(message)
-  }
-
   async sendCollaboratorInfo(){
     let currentLocation : any = await GeolocationUtils.getCurrentLocation()
     this.collabSockets.forEach((e: {messagesSubject: Subject<any>, socket: WebSocketSubject<any>, hashtag: string}) => {
@@ -158,6 +138,26 @@ export class MailComponent implements OnInit {
       clearInterval(this.interval)
     }
     this.interval = setInterval(this.sendCollaboratorInfo.bind(this), 5000)
+  }
+
+  closeGroup(group){
+    this.groupsService.groups = this.groupsService.groups.filter(e => !(e == group))
+    this.collabSockets = this.collabSockets.filter((e: {messagesSubject: Subject<any>, socket: WebSocketSubject<any>, hashtag: string}) => {
+      if(e.hashtag == group.hashtag){
+        e.socket.complete()
+        return false
+      }
+      return true
+    })
+  }
+
+  delivery(group){
+    this.collabSockets.find(g => g.hashtag == group.hashtag).socket.next({
+      action: 2,
+      data: {
+        newDelivery: true
+      }
+    })
   }
 
 }
