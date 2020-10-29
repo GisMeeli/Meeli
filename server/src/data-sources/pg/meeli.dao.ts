@@ -29,6 +29,29 @@ export class MeeliDao implements MeeliRepository {
     console.log(`Se han eliminado ${mail.rowCount + taxi.rowCount} sesiones antiguas.`);
   }
 
+  async getRoutes(
+    groupCategory: GroupCategoryModel,
+    hashtag: string,
+    collaboratorId: string,
+    start: Date,
+    end: Date
+  ): Promise<any> {
+    let targetFunction: string;
+
+    if (groupCategory == GroupCategoryModel.Mail) targetFunction = 'mail.get_deliveries';
+    if (groupCategory == GroupCategoryModel.Taxi) targetFunction = 'taxi.get_rides';
+
+console.log(start);
+console.log(end);
+
+    const pg = await PostgresConnectionManager.getPool().connect();
+    const result = await pg.query(`SELECT ${targetFunction}($1, $2, $3, $4);`, [hashtag, collaboratorId, start, end]);
+
+    pg.release();
+
+    return result;
+  }
+
   private getSchema(auth: AuthenticatedSessionModel): string {
     return auth.groupCategory == GroupCategoryModel.Mail ? 'mail' : 'taxi';
   }

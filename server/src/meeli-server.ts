@@ -14,6 +14,7 @@ import { MeeliService } from './services/meeli.service';
 import { MeeliDao } from './data-sources/pg/meeli.dao';
 import fs from 'fs';
 import { schedule } from 'node-cron';
+import { MeeliRouter } from './routes/meeli.route';
 
 export class MeeliServer {
   private app: Application;
@@ -61,6 +62,7 @@ export class MeeliServer {
         res.send('<h1>Hello, world!</h1>');
       })
       .use('/groups', GroupsRouter(this.groupsService, this.sessionsService))
+      .use('/meeli', MeeliRouter(this.meeliService, this.groupsService))
       .use('/tests', TestsRouter(this.groupsService, this.sessionsService));
   }
 
@@ -161,7 +163,7 @@ export class MeeliServer {
             connection
               .on('message', async (msg: ws.IMessage) => {
                 this.sessionsService.updateLastSeen(auth.sessionId);
-                
+
                 const result = await this.meeliService.handleCollaboratorRequest(auth, msg);
 
                 connection.sendUTF(JSON.stringify(result));

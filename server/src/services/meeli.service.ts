@@ -83,4 +83,14 @@ export class MeeliService implements Service {
   async updateTaxiStatus(auth: AuthenticatedSessionModel, update: MeeliTaxiStatusUpdate): Promise<void> {
     await this.repository.updateTaxiCollaboratorStatus(auth, update);
   }
+
+  async getRoutes(
+    groupCategory: GroupCategoryModel,
+    hashtag: string,
+    collaboratorId: string,
+    start: Date,
+    end: Date
+  ): Promise<any> {
+    return await this.repository.getRoutes(groupCategory, hashtag, collaboratorId, start, end);
+  }
 }
