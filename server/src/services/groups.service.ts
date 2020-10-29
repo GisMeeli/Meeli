@@ -8,7 +8,6 @@ import { buildErrorResponse } from '../utils/service-response-handler';
 import { GroupCollaboratorModelValidator } from '../validators/group-collaborator-model.validator';
 import { GroupModelValidator } from '../validators/group-model.validator';
 import { hasValidationErrors } from '../validators/validator-utils';
-import jwt from 'jsonwebtoken';
 
 export class GroupsService implements Service {
   constructor(private repository: GroupsRepository) {}
@@ -96,10 +95,6 @@ export class GroupsService implements Service {
           collaboratorId: 'admin',
           name: 'admin'
         };
-        // return {
-        //   name: 'admin',
-        //   token: this.generateSession(loginRequest.group, 'admin')
-        // };
       } else {
         return buildErrorResponse({ message: 'Clave de administrador inválida.' });
       }
@@ -112,31 +107,11 @@ export class GroupsService implements Service {
           collaboratorId: targetCollaborator.id,
           name: targetCollaborator.name
         };
-        // return {
-        //   name: targetCollaborator.name,
-        //   token: this.generateSession(loginRequest.group, targetCollaborator.id)
-        // };
       }
     }
 
     return buildErrorResponse({ message: 'Clave de colaborador inválida.' });
   }
-
-  /*
-  private generateSession(groupId: string, memberId: string): any {
-    return jwt.sign(
-      {
-        group: groupId,
-        member: memberId,
-        creation: Date.now()
-      },
-      process.env.SERVER_JWT_SECRET,
-      {
-        expiresIn: '1d'
-      }
-    );
-  }
-  */
 
   private formatGroup(group: GroupModel): GroupModel {
     group.adminKey = undefined;

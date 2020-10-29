@@ -16,8 +16,17 @@ export class SessionsDao implements SessionsRepository {
     tedis.close();
   }
 
-  delete(id: string): Promise<boolean> {
-    throw new Error('Method not implemented.');
+  async delete(id: string): Promise<boolean> {
+    try {
+      const tedis = await RedisConnectionManager.getRedisConnection().getTedis();
+      await tedis.del(id);
+      tedis.close();
+
+      return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
   }
 
   async get(id: string): Promise<SessionModel> {
