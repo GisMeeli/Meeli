@@ -6,7 +6,24 @@ import { MeeliRepository } from '../../repositories/meeli.repository';
 import { PostgresConnectionManager } from './connection-manager';
 
 export class MeeliDao implements MeeliRepository {
-  
+  async removeOldMeeliSessions(): Promise<void> {
+    console.log('Ejecutando rutina de eliminación de sesiones antiguas...');
+
+    const pg = await PostgresConnectionManager.getPool().connect();
+    const mail = await pg.query(
+      'DELETE FROM mail.realtime WHERE ROUND((EXTRACT(EPOCH FROM now()) - EXTRACT(EPOCH FROM last_seen)) * 1000) > $1;',
+      [Number.parseInt(process.env.SERVER_SESSION_TIMEOUT)]
+    );
+    const taxi = await pg.query(
+      'DELETE FROM taxi.realtime WHERE ROUND((EXTRACT(EPOCH FROM now()) - EXTRACT(EPOCH FROM last_seen)) * 1000) > $1;',
+      [Number.parseInt(process.env.SERVER_SESSION_TIMEOUT)]
+    );
+
+    pg.release();
+    
+    console.log(`Se han eliminado ${mail.rowCount + taxi.rowCount} sesiones antiguas.`);
+  }
+
   private getSchema(auth: AuthenticatedSessionModel): string {
     return auth.groupCategory == GroupCategoryModel.Mail ? 'mail' : 'taxi';
   }

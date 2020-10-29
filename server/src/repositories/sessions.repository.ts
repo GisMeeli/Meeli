@@ -7,4 +7,6 @@ export interface SessionsRepository extends Repository {
   delete(id: string): Promise<boolean>;
 
   get(id: string): Promise<SessionModel>;
+
+  updateLastSeen(id: string): Promise<void>;
 }

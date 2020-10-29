@@ -13,6 +13,7 @@ import { SessionsDao } from './data-sources/redis/sessions.dao';
 import { MeeliService } from './services/meeli.service';
 import { MeeliDao } from './data-sources/pg/meeli.dao';
 import fs from 'fs';
+import { schedule } from 'node-cron';
 
 export class MeeliServer {
   private app: Application;
@@ -33,6 +34,7 @@ export class MeeliServer {
     this.setupHttpServer();
     this.setupHttpsServer();
     this.setupWSServer();
+    this.setupSessionWatcher();
   }
 
   private setupServices() {
@@ -158,6 +160,8 @@ export class MeeliServer {
 
             connection
               .on('message', async (msg: ws.IMessage) => {
+                this.sessionsService.updateLastSeen(auth.sessionId);
+                
                 const result = await this.meeliService.handleCollaboratorRequest(auth, msg);
 
                 connection.sendUTF(JSON.stringify(result));
@@ -180,5 +184,11 @@ export class MeeliServer {
       .on('close', (connection: ws.connection, reason: number, desc: string) => {
         console.log('Connection was closed!');
       });
+  }
+
+  setupSessionWatcher() {
+    schedule('* * * * *', async () => {
+      await this.meeliService.removeOldMeeliSessions();
+    });
   }
 }

@@ -3,6 +3,19 @@ import { SessionsRepository } from '../../repositories/sessions.repository';
 import { RedisConnectionManager } from './connection-manager';
 
 export class SessionsDao implements SessionsRepository {
+  async updateLastSeen(id: string): Promise<void> {
+    const tedis = await RedisConnectionManager.getRedisConnection().getTedis();
+    let tmpSession = await this.get(id);
+    tmpSession.id = undefined;
+    tmpSession.lastSeen = new Date();
+
+    tedis.set(id, JSON.stringify(tmpSession));
+    RedisConnectionManager.getRedisConnection().putTedis(tedis);
+    tedis.close();
+
+    console.log(`Session updated: ${id}`);
+  }
+
   async add(session: SessionModel): Promise<void> {
     const tedis = await RedisConnectionManager.getRedisConnection().getTedis();
 

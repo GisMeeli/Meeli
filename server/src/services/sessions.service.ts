@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 import { GroupCategoryModel } from '../models/group-category.model';
 import { AuthenticatedSessionModel } from '../models/authenticated-session.model';
+import { getTimeDifferenceInMillis } from '../utils/time-utils';
 
 export class SessionsService implements Service {
   constructor(private repository: SessionsRepository) {}
@@ -49,6 +50,19 @@ export class SessionsService implements Service {
     } catch (err) {
       console.log(err);
       return undefined;
+    }
+  }
+
+  async updateLastSeen(sessionId: string): Promise<void> {
+    const session = await this.getSession(sessionId);
+    if (session != null) {
+      if (
+        getTimeDifferenceInMillis(session.lastSeen, new Date()) < Number.parseInt(process.env.SERVER_SESSION_TIMEOUT)
+      ) {
+        this.repository.updateLastSeen(sessionId);
+      } else {
+        this.deleteSession(sessionId);
+      }
     }
   }
 }

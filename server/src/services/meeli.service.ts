@@ -54,4 +54,8 @@ export class MeeliService implements Service {
   async endSession(auth: AuthenticatedSessionModel): Promise<void> {
     await this.repository.endSession(auth);
   }
+
+  async removeOldMeeliSessions() {
+    await this.repository.removeOldMeeliSessions();
+  }
 }
