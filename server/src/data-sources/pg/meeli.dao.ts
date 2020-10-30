@@ -11,6 +11,24 @@ import { MeeliRepository } from '../../repositories/meeli.repository';
 import { PostgresConnectionManager } from './connection-manager';
 
 export class MeeliDao implements MeeliRepository {
+  async getLocationName(point: MeeliPoint): Promise<any> {
+    const pg = await PostgresConnectionManager.getPool().connect();
+    const result = await pg.query(
+      'SELECT nom_prov, nom_cant, nom_dist FROM public.cr_distritos WHERE ST_Within(ST_SetSRID(ST_MakePoint($1, $2), 4326), geom);',
+      [point.lon, point.lat]
+    );
+
+    if (0 < result.rowCount) {
+      const target = result.rows[0];
+      
+      return {
+        province: target.nom_prov,
+        canton: target.nom_cant,
+        district: target.nom_dist
+      };
+    } else return { message: 'La ubicación proporcionada está fuera del territorio de Costa Rica.' };
+  }
+
   async removeOldMeeliSessions(): Promise<void> {
     console.log('Ejecutando rutina de eliminación de sesiones antiguas...');
 
@@ -41,8 +59,8 @@ export class MeeliDao implements MeeliRepository {
     if (groupCategory == GroupCategoryModel.Mail) targetFunction = 'mail.get_deliveries';
     if (groupCategory == GroupCategoryModel.Taxi) targetFunction = 'taxi.get_rides';
 
-console.log(start);
-console.log(end);
+    console.log(start);
+    console.log(end);
 
     const pg = await PostgresConnectionManager.getPool().connect();
     const result = await pg.query(`SELECT ${targetFunction}($1, $2, $3, $4);`, [hashtag, collaboratorId, start, end]);

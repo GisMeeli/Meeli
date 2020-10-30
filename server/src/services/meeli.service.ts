@@ -93,4 +93,8 @@ export class MeeliService implements Service {
   ): Promise<any> {
     return await this.repository.getRoutes(groupCategory, hashtag, collaboratorId, start, end);
   }
+
+  async getLocationName(point: MeeliPoint): Promise<any> {
+    return this.repository.getLocationName(point);
+  }
 }

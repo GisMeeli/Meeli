@@ -26,6 +26,8 @@ export interface MeeliRepository {
     end: Date
   ): Promise<any>;
 
+  getLocationName(point: MeeliPoint): Promise<any>;
+
   removeOldMeeliSessions(): Promise<void>;
 
   updateCollaboratorLocation(auth: AuthenticatedSessionModel, location: MeeliPoint): Promise<any>;
