@@ -7,6 +7,7 @@ import { ToastrService } from 'ngx-toastr';
 import { Subject } from 'rxjs';
 import { WebSocketSubject } from 'rxjs/webSocket';
 import GeolocationUtils from '../utils/geolocation.utils';
+import { LocationService } from '../services/location/location.service';
 
 @Component({
   selector: 'app-taxi',
@@ -14,34 +15,46 @@ import GeolocationUtils from '../utils/geolocation.utils';
   styleUrls: ['./taxi.component.scss']
 })
 export class TaxiComponent implements OnInit, OnDestroy {
+
+  // Variable que ayuda a que sea responsive, si está activa muestra la ventana de grupos
   mobileShowGroups = false
 
+  // Rol seleccionado (0 Observador, 1 Admin, 2 Gestor)
   selectedRol = 0
 
+  // Grupo que se está añadiendo para verlo (input)
   groupHash = ""
 
+  // Código o contraseña del grupo que se está añadiendo (input)
   groupCode = ""
 
-  groupCodeModify = ""
-
+  // Si está o no abierta la ventana de ver un nuevo grupo
   addingNew = false
 
+  // Si es true muestra el progress spinner
   loading = false
 
+  // Conexiones a sockets por cada uno de los grupos que se están gestionando
   collabSockets : {messagesSubject: Subject<any>, socket: WebSocketSubject<any>, hashtag: string}[] = []
 
+  // Variable que guarda el número de interval que envía la info al gestor cada 1s
   interval = undefined
+
+  // Guarda la provincia, cantón y distrito donde se ubica el usuario
+  whereAmI = undefined
 
   constructor(
     private dialogService: DialogService,
       private webSocketService: WebsocketService,
       public groupsService: GroupsService,
       private toastr: ToastrService,
+      private locationService: LocationService
     ){
     }
 
 
   ngOnDestroy(): void {
+    //Cierra todas las conexiones de los ws
     this.collabSockets.forEach(
       (e: {messagesSubject: Subject<any>, socket: WebSocketSubject<any>, hashtag: string}) => e.socket.complete()
     )
@@ -58,16 +71,21 @@ export class TaxiComponent implements OnInit, OnDestroy {
     //     this.stopInterval();
     //   }
     // }).bind(this));
+    this.refreshWhereAmI()
   }
 
+  //Cambia el rol seleccionado
   changeSelectedRol(value){
     this.selectedRol = value
   }
 
+  //Obtiene si el botón de ver grupo debería estar deshabilitado
   get disabledSeeGroup(){
     return this.groupHash == ""
   }
 
+
+  // Añade un grupo a los grupos visibles
   addGroup() {
     this.loading = true
     //this.groups.push({hash, role: this.selectedRol, visible: true})
@@ -124,18 +142,22 @@ export class TaxiComponent implements OnInit, OnDestroy {
     this.addingNew = false
   }
 
+  //Abre un dialog para administrar el grupo
   administrarGrupo(hashtag) {
     let dialog = this.dialogService.adminGroupDialog(hashtag)
   }
 
+  // Cambia la visibilidad del grupo en el mapa
   toogleVisibility(group){
     group.visible = !group.visible
   }
 
+  // Abre un dialog para crear un grupo
   createGroup(){
     let dialog = this.dialogService.createGroupDialog(2)
   }
 
+  // Envía información sobre el gestor, para que se actualice su posición en el mapa
   async sendCollaboratorInfo(){
     let currentLocation : any = await GeolocationUtils.getCurrentLocation()
     this.collabSockets.forEach((e: {messagesSubject: Subject<any>, socket: WebSocketSubject<any>, hashtag: string}) => {
@@ -146,6 +168,7 @@ export class TaxiComponent implements OnInit, OnDestroy {
     })
   }
 
+  // Marca si el siguiente punto empieza o termina un viaje
   toggleTrip(group){
     group.is_available = !group.is_available
     this.collabSockets.find(g => g.hashtag == group.hashtag).socket.next({
@@ -156,6 +179,7 @@ export class TaxiComponent implements OnInit, OnDestroy {
     })
   }
 
+  // Crea un nuevo interval si no existe o renueva el existente
   refreshInverval(){
     if(this.interval != undefined){
       clearInterval(this.interval)
@@ -164,12 +188,14 @@ export class TaxiComponent implements OnInit, OnDestroy {
     this.interval = setInterval(this.sendCollaboratorInfo.bind(this), 1000)
   }
 
+  // Detiene el interval
   stopInterval(){
     if(this.interval)
       clearInterval(this.interval)
     this.interval = undefined;
   }
 
+  // Hace que un grupo se elimine de la lista de grupos que estoy viendo, si tuviese conexiones de gestor, las cierra
   closeGroup(group){
     this.groupsService.groups = this.groupsService.groups.filter(e => !(e == group))
     this.collabSockets = this.collabSockets.filter((e: {messagesSubject: Subject<any>, socket: WebSocketSubject<any>, hashtag: string}) => {
@@ -179,6 +205,18 @@ export class TaxiComponent implements OnInit, OnDestroy {
       }
       return true
     })
+  }
+
+  // Refresca la variable whereAmI, trayendo la info de la db
+  refreshWhereAmI(){
+    GeolocationUtils.getCurrentLocation().then(
+      (myLocation : any) => {
+        this.locationService.whereAmI(myLocation.lat, myLocation.lng).then((value) => {
+          console.log(value)
+          this.whereAmI = value;
+        })
+      }
+    )
   }
 
 

@@ -66,8 +66,17 @@
 
             <div
                 style="width: calc(100% - 20px); min-height: 100px; border-radius: 10px; border: 1px rgb(216, 216, 216) solid; padding: 10px; overflow-y: auto;">
-                <div *ngFor="let group of this.groupsService.groups" role="listitem" style="display: flex; flex-direction: row; justify-content: center; align-items: center;">
-                    <button mat-button style="min-width: 40px; max-width: 40px; padding: 0; min-height: 40px; max-height: 40px" (click)="closeGroup(group)">
+                <div *ngIf="groupsService.groups.length <= 0 && whereAmI != undefined" style="min-height: 100px; display: flex; justify-content: center; align-items: center; text-align: center; flex-direction: column; line-height: 1.5;">
+                    <div style="color: gray;">No hay grupos por mostrar aún</div>
+                    <div style="color: rgb(74, 74, 74);">Ubicado en 
+                        <b style="color: #3f51b5">{{whereAmI.district}}, {{whereAmI.canton}}, {{whereAmI.province}}</b>
+                    </div>
+                </div>
+                <div *ngFor="let group of this.groupsService.groups" role="listitem"
+                    style="display: flex; flex-direction: row; justify-content: center; align-items: center;">
+                    <button mat-button
+                        style="min-width: 40px; max-width: 40px; padding: 0; min-height: 40px; max-height: 40px"
+                        (click)="closeGroup(group)">
                         <mat-icon>close</mat-icon>
                     </button>
                     <div
@@ -75,7 +84,9 @@
                         <div style="margin: auto 0; font-size: 15px; ">#{{group.hashtag}}</div>
                         <div>
                             <button mat-stroked-button *ngIf="group.role == 2" (click)="toggleTrip(group)"
-                                matTooltip="Empezar viaje | Terminar viaje" style="margin-right: 7px;" color="accent">
+                                [matTooltip]="group.is_available? 'Empezar viaje': 'Terminar viaje'"
+                                style="margin-right: 7px;" [style.color]="group.is_available? 'green': 'red'"
+                                color="accent">
                                 <mat-icon>time_to_leave</mat-icon>
                             </button>
                             <button mat-stroked-button *ngIf="group.role == 1" (click)="administrarGrupo(group.hashtag)"

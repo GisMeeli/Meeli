@@ -6,6 +6,7 @@ import { ToastrService } from 'ngx-toastr';
 import { range, Subject } from 'rxjs';
 import { WebSocketSubject } from 'rxjs/webSocket';
 import { GroupsService } from '../services/groups/groups.service';
+import { ReportsService } from '../services/reports/reports.service';
 import { WebsocketService } from '../services/websocket/websocket.service';
 import TilesUtils from '../utils/tiles.utils';
 
@@ -20,7 +21,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private toastr: ToastrService,
     private webSocketService: WebsocketService,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    private reportsService: ReportsService
   ) {
   }
   ngOnDestroy(): void {
@@ -51,7 +53,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setIntervals()
   }
 
-  get date(){
+  get date() {
     return new Date();
   }
 
@@ -109,7 +111,11 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   tooltip = {
     showing: false,
-    html: ''
+    taxi: undefined,
+    mail: undefined,
+    my_ubication: undefined,
+    taxi_ride: undefined,
+    delivery: undefined
   }
 
   loading = false;
@@ -300,9 +306,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setupMapInfoWS()
   }
 
-  showTooltip(html) {
+  showTooltip() {
+    this.clearTooltip()
     this.tooltip.showing = true;
-    this.tooltip.html = html
   }
 
 
@@ -367,21 +373,27 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setupMapInfoWS() {
+    let focused = false;
     this.webSocket = this.webSocketService.connect("guest")
     this.webSocket.socket.asObservable().subscribe(data => {
       const { records, bounding_box } = data.rows[0].get_realtime_info
-      if (records != null){
-        if(this.category == 2)
+      if (records != null) {
+        if (this.category == 2)
           this.showTaxis(records)
         else
           this.showMails(records)
-        
+
       }
-      if (bounding_box != null)
+      if (bounding_box != null){
         if (bounding_box.type == 'Polygon')
           this.boundingBox = [bounding_box.coordinates[0][0], bounding_box.coordinates[0][2]]
         else
           this.boundingBox = [bounding_box.coordinates, bounding_box.coordinates]
+      }
+      if(!focused){
+        focused = true;
+        this.focus()   
+      }
     })
     let visibleGroups = this.groups.filter((group, i) => group.visible && this.groups.indexOf(group) == i)
     if (visibleGroups.length > 0)
@@ -420,22 +432,57 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  search(picker1: NgxMatDatetimePicker<any>, picker2: NgxMatDatetimePicker<any>){
-    let start = new Date(picker1._selected).toISOString()
-    let end = new Date(picker2._selected).toISOString()
+  async search(picker1: NgxMatDatetimePicker<any>, picker2: NgxMatDatetimePicker<any>) {
+    this.mailReports = []
+    this.taxiRides = []
+    let start = undefined;
+    let end = undefined;
+    if (picker1._selected != null)
+      start = new Date(picker1._selected).toISOString()
+    if (picker2._selected != null)
+      start = new Date(picker1._selected).toISOString()
     this.showingFilter = false;
-    this.stopInterval();
     this.applyingFilter = true;
+    this.stopInterval();
+    this.groups.forEach(group => {
+      this.reportsService.getReports(this.category == 2 ? 'taxi' : 'mail', group.hashtag, undefined, start, end).then(
+        response => {
+          let bounding_box
+
+          if (this.category == 2) {
+            bounding_box = response.rows[0].get_rides.bounding_box
+            this.showTaxiRides(response.rows[0].get_rides.records)
+          }
+          else {
+            bounding_box = response.rows[0].get_deliveries.bounding_box
+            this.showMailReports(response.rows[0].get_deliveries.records)
+          }
+          if (bounding_box != null) {
+            if (bounding_box.type == 'Polygon')
+              this.boundingBox = [bounding_box.coordinates[0][0], bounding_box.coordinates[0][2]]
+            else
+              this.boundingBox = [bounding_box.coordinates, bounding_box.coordinates]
+            this.focus()
+          }
+          else{
+            this.toastr.info("No hay ningún elemento para mostrar")
+          }
+        }
+      )
+    }
+    )
   }
 
-  stopInterval(){
+  stopInterval() {
     clearInterval(this.interval)
     this.taxis = []
     this.mails = []
   }
 
-  clearSearch(){
+  clearSearch() {
     this.applyingFilter = false;
+    this.mailReports = []
+    this.taxiRides = []
     this.interval = setInterval(this.refreshMapInfo.bind(this), 1000)
   }
 
@@ -445,14 +492,53 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ]
 
+  taxiRides = [
+
+  ]
+
   showTaxis(records: any[]) {
     records = records.filter(taxi => taxi.geom != null)
     records.forEach(taxiRecord => {
       const projected = TilesUtils.project(taxiRecord.geom.coordinates[1], taxiRecord.geom.coordinates[0], this.TILE_SIZE)
       taxiRecord.x = projected.lng
       taxiRecord.y = projected.lat
+
+      taxiRecord.last_seen = new Date(taxiRecord.last_seen + "+00:00")
     })
     this.taxis = records
+  }
+
+  showTaxiRides(records: any[]) {
+    records.forEach((value) => {
+      value.projectedTrack = value.track.coordinates.map(point => {
+        let projected = TilesUtils.project(point[1], point[0], this.TILE_SIZE)
+        return [projected.lng, projected.lat]
+      });
+
+      value.svgTrack = value.projectedTrack.map(point => point.join(" ")).join(" L ")
+      value.svgTrack = `M ${value.svgTrack}`
+      console.log(value.svgTrack)
+
+      value.start = new Date(value.start + "+00:00")
+      value.end = new Date(value.end + "+00:00")
+    })
+    console.log(records)
+    this.taxiRides = [...this.taxiRides, ...records]
+    console.log(this.taxiRides)
+    /*
+      end: "2020-10-29T03:52:55.680806", start: "2020-10-29T03:52:24.741044",…}
+      collaborator: "6ef38bb0-8388-4fdc-9f46-cd6cd22273c5"
+      driver_name: "x"
+      end: "2020-10-29T03:52:55.680806"
+      hashtag: "pruebataxi"
+      metters: 3.318016390719465
+      ride_count: 1
+      start: "2020-10-29T03:52:24.741044"
+      track: {type: "LineString", coordinates: [[-84.29428, 10.35964], [-84.29428, 10.35967]]}
+      vehicle_brand: "x"
+      vehicle_model: "x"
+      vehicle_plate: "x"
+    */
   }
 
   showTaxiTooltip(taxi) {
@@ -472,15 +558,37 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       x: 68.07103146666668
       y: 120.5172813918194
     */
-    this.showTooltip(
-      `<div style="text-align: center; line-height: 1.7">
-        <b>${taxi.driver_name}</b> <br>
-        <span>#${taxi.hashtag}</span> <br>
-        <b>${taxi.is_available ? "Libre" : "En viaje"}</b> <br>
-        <b>Placa: ${taxi.vehicle_plate}</b> <br><br>
+    this.showTooltip()
+    this.tooltip.taxi = taxi
+  }
 
-        <span>Última actualización: ${this.datePipe.transform(taxi.last_seen + "+00:00", 'h:mm:ss a')}
-      </div>`)
+  showCollaboratorRides(taxi) {
+    this.reportsService.getReports(this.category == 2 ? 'taxi' : 'mail', undefined, taxi.collaborator, undefined, undefined).then(
+      response => {
+        let bounding_box = response.rows[0].get_rides.bounding_box
+        this.showTaxiRides(response.rows[0].get_rides.records)
+
+        this.showingFilter = false;
+        this.applyingFilter = true;
+        this.stopInterval()
+        if (bounding_box != null){
+          if (bounding_box.type == 'Polygon')
+          this.boundingBox = [bounding_box.coordinates[0][0], bounding_box.coordinates[0][2]]
+          else
+          this.boundingBox = [bounding_box.coordinates, bounding_box.coordinates]
+          this.focus()
+          this.clearTooltip()
+        }
+        else{
+          this.toastr.info("No hay ningún elemento para mostrar")
+        }
+      }
+    )
+  }
+
+  showRideTooltip(taxi_ride){
+    this.showTooltip()
+    this.tooltip.taxi_ride = taxi_ride;
   }
 
 
@@ -491,19 +599,90 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ]
 
-  showMails(records){
+  mailReports = [
+
+  ]
+
+  showMails(records) {
     records = records.filter(mail => mail.geom != null)
     records.forEach(mailRecord => {
       const projected = TilesUtils.project(mailRecord.geom.coordinates[1], mailRecord.geom.coordinates[0], this.TILE_SIZE)
       mailRecord.x = projected.lng
       mailRecord.y = projected.lat
+
+      mailRecord.last_seen = new Date(mailRecord.last_seen + "+00:00")
     })
     this.mails = records
   }
 
+  showMailReports(records) {
+    /*
+        collaborator: "2a50ddce-7eed-439b-bac5-74c425d87286"
+        delivery_count: 1
+        driver_name: "Walter"
+        first: "KOIN23"
+        geom:
+        coordinates: (2) [-84.430677, 10.3271511]
+        type: "Point"
+        __proto__: Object
+        hashtag: "correosW"
+        last_seen: "2020-10-29T04:59:36.03125"
+        vehicle_brand: "KKKL"
+        vehicle_plate: "KKK"
+    */
+    records.forEach(record => {
+      let projected = TilesUtils.project(record.geom.coordinates[1], record.geom.coordinates[0], this.TILE_SIZE)
+      record.projectedPoint = [projected.lng, projected.lat]
+
+      record.last_seen = new Date(record.last_seen + "+00:00")
+    });
+    this.mailReports.push(...records)
+  }
+
   showMailTooltip(mail) {
-    console.log(mail)
-    this.showTooltip("Mail x")
+    this.showTooltip()
+    this.tooltip.mail = mail;
+  }
+
+  showCollaboratorDeliveries(mail) {
+    this.reportsService.getReports(this.category == 2 ? 'taxi' : 'mail', undefined, mail.collaborator, undefined, undefined).then(
+      response => {
+        let bounding_box = response.rows[0].get_deliveries.bounding_box
+        this.showMailReports(response.rows[0].get_deliveries.records)
+
+        this.showingFilter = true;
+        this.applyingFilter = true;
+        this.stopInterval()
+        if (bounding_box != null){
+
+          if (bounding_box.type == 'Polygon')
+          this.boundingBox = [bounding_box.coordinates[0][0], bounding_box.coordinates[0][2]]
+          else
+          this.boundingBox = [bounding_box.coordinates, bounding_box.coordinates]
+          this.clearTooltip()
+          this.focus()
+        }
+        else{
+          this.toastr.info("No hay ningún elemento para mostrar")
+        }
+      }
+    )
+  }
+
+  showDeliveryTooltip(delivary){
+    this.showTooltip();
+    this.tooltip.delivery = delivary;
+  }
+
+  clearTooltip() {
+    this.tooltip = {
+      showing: false,
+      taxi: undefined,
+      mail: undefined,
+      my_ubication: undefined,
+      taxi_ride: undefined,
+      delivery: undefined
+    }
   }
 
 
