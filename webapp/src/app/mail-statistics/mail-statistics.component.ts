@@ -44,19 +44,23 @@ export class MailStatisticsComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  // Cambia el valor del tipo de estadistica, para mostrar o no diferentes vistas en el html
   changeSelectedRol(value){
     this.tipoEstadistica = value
-  }
+  } 
 
+  // Limpia la lista del datasource y lo carga con los datos actuales, para no duplicar datos.
   cargarLista(){
     this.dataSource = new MatTableDataSource<any>([])
     this.gestores = []
     this.dataSource = new MatTableDataSource<any>(this.gestores)
   }
 
+  // Carga los datos de los taxis utilizando el servicio de grupos
+  // Recibe un hashtag para enviarlo como parámetro y se recorre el resultado para obtener los datos requeridos para mostrar
   verEstadisticas(){
     this.cargarLista()
-
+    // Dependiendo si el tipo de estadistica es 0 ó 1 consulta solo por hashtag o tambien con la fecha ingresada por el usuario.
     if(this.tipoEstadistica == 0){
       this.groupsService.getTaxiStatistics("mail", this.hashtag).subscribe(
         data => {     

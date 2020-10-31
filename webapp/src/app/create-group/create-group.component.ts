@@ -34,6 +34,7 @@ export class CreateGroupComponent implements OnInit {
     this.dialogRef.close()
   }
 
+  // Solicitar al servicio de los grupos para crear un grupo.
   onYesClick(){
     console.log(this.group)
     this.groupsService.createGroup(this.group).subscribe(
