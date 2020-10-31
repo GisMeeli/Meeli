@@ -4,6 +4,12 @@ import { EMPTY, Subject } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { WS_URL } from 'src/environments/environment';
 
+
+/* 
+  Servicio para obtener conexiones a ws
+*/
+
+
 @Injectable({
   providedIn: 'root'
 })

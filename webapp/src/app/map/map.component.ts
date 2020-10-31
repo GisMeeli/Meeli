@@ -21,17 +21,23 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private toastr: ToastrService,
     private webSocketService: WebsocketService,
-    private datePipe: DatePipe,
     private reportsService: ReportsService
   ) {
   }
+
+
   ngOnDestroy(): void {
+
+    //Termina la conexión del ws
     if (this.webSocket != undefined) {
       this.webSocket.socket.complete()
     }
   }
 
+  // Grupos que se están mostrando
   @Input() groups: any[];
+
+  // Categoría para saber qué se muestra en el mapa (1 mail, 2 taxi)
   @Input() category: Number;
 
 
@@ -39,9 +45,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.refreshTile()
     this.setOnCurrentPosition()
     this.svg.element = document.getElementById("map")
-    // console.log(this.svg.element.clientHeight)
-    // console.log(this.svg.element.clientWidth)
 
+
+    // Para que el mapa siempre quede cuadrado, se determina el minimo entre las dimensiones y se colocan las en ese mínimo
     let max = Math.min(this.svg.element.parentElement.clientHeight, this.svg.element.parentElement.clientWidth)
 
     this.svg.element.parentElement.style.maxHeight = `${max}px`
@@ -53,62 +59,73 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setIntervals()
   }
 
+  //Obtiene la fecha actual
   get date() {
     return new Date();
   }
 
-  tile = "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
+  //URL de capa que se muestra en el mapa
+  TILE = "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
 
+  //Zoom del mapa, va de 1-18. Es el estándar para poder mostrar bien las capas
   zoom: number = 13
 
-  map: any
-
+  //Bandera para saber si el mapa está clickeado o no, se usa para el movimiento
   clicked = false
 
-
+  // X & Y en las que se encuentra la esquina superior izquierda del viewBox del svg del mapa
   currentXY = {
     x: 0,
     y: 0,
-
   }
 
+  // Tamaño del tile
   TILE_SIZE = 256
 
+  // Tamaño que debería tener el viewbox del svg, calculado con el TILE_SIZE y el zoom actual
   get size() {
     return (this.TILE_SIZE / Math.pow(2, this.zoom))
   }
 
-
+  // Tamaño de los marcadores en el mapa
   get markerSize() {
     return this.size * 0.1
   }
 
-
+  // Última X & Y en las que estuvo el mouse, cuando va siendo arrastrando. También se usa para el movimiento
   lastXY = {
     x: 0, y: 0
   }
 
+  // Bordes del mapa
   bounds = {
     min: { x: 0.0000000001, y: 0.0000000001 },
     max: { x: 255.999999999, y: 255.9999999999 }
   }
 
+  // Determina el actual estilo del cursor 
   cursor = "grab"
 
+  // Lista que contiene cada una de las url de las imágenes, por cada zoom, con su debida posición en el mapa. 
+  // Se usa para mostrar el TILE en el mapa
   tileImages: { lat: number, lng: number, z: number, x: number, y: number }[][] = Array(18).fill([]).map(x => x = [])
 
+  //Tiene el tamaño del svg del mapa y el NodeElement de html del mismo
   svg = {
     width: 0,
     height: 0,
     element: undefined
   }
 
+  // Posición actual del usuario, las x&y representan la posición proyectada
   currentPosition: { lng, lat, x, y } = undefined
 
+  // Tamaño que deberían tener las imágenes del TILE para mostrarlas en el svg
   get imageWidth() {
     return this.TILE_SIZE / Math.pow(2, this.zoom + 1)
   }
 
+  // Sirve para saber qué información se muestra en el tooltip y si se debería mostrar en ese momento
   tooltip = {
     showing: false,
     taxi: undefined,
@@ -118,19 +135,26 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     delivery: undefined
   }
 
+  // Si está cargando alguna capa, se coloca en true y muestra un spinner
   loading = false;
 
+  // Tiene la conexión de ws que traerá los datos en tiempo real que se muestran en el mapa
   webSocket: { messagesSubject: Subject<any>, socket: WebSocketSubject<any> };
 
+  // Bounding box actual para los elementos que se encuentren en el mapa
   boundingBox: any[][]
 
+  // Detemrina si se está o no mostrando el panel inferior que tiene el filtro por fecha
   showingFilter = false
 
+  // Determina el número de interval del interval que actualiza la información cada 1s
   interval = undefined
 
+  // Determina si en ese momento se está aplicando un filtro, se usa para mostrar el botón de quitar filtro
   applyingFilter = false
 
 
+  // Determina cada una de las imágenes del TILE que necesita ser cargada y las inserta en la lista con sus respectivos valores de x & y
   refreshTile() {
     let zoom = this.zoom + 1
 
@@ -162,21 +186,25 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  //Obtiene la url para obtener una images del tile con los parámetros dados
   tileUrl(x, y, z) {
     let params = { x, y, z }
-    return this.tile.replace(/[{].[}]/g, (s) => params[s.charAt(1)])
+    return this.TILE.replace(/[{].[}]/g, (s) => params[s.charAt(1)])
   }
 
 
+  // Hace zoomin al mapa
   zoomin = (refreshTile = true) => {
     this.setZoom(this.zoom + 1, refreshTile)
   }
 
 
+  // Hace zoomout al mapa
   zoomout = (refreshTile = true) => {
     this.setZoom(this.zoom - 1, refreshTile)
   }
 
+  // Setea el zoom del mapa, validando que no se pase del max/min, puede o no refrescar el tile
   setZoom = (z, refreshTile = true) => {
     if (z < 0) {
       z = 0
@@ -190,6 +218,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.verifyBounds()
   }
 
+  // Obtiene las coordenadas en base 256 del centro del mapa
   getCenter = () => {
     return {
       x: this.currentXY.x + this.size / 2,
@@ -197,6 +226,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // Evento para el scroll, para hacer zoomin o zoomout
   wheel(event) {
     if (event.deltaY > 0) {
       this.zoomout()
@@ -206,23 +236,26 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-
+  // Obtiene la viewBox del svg
   get viewBox() {
     return `${this.currentXY.x} ${this.currentXY.y} ${this.size} ${this.size}`
   }
 
+  // Cuando el mouse es apretado, se guarda el click, se coloca el cursor como agarrando
   mouseDown(e: MouseEvent) {
     this.clicked = true
     this.lastXY = { x: e.x, y: e.y }
     this.cursor = "grabbing"
   }
 
+  // Cuando el mouse deja de ser apretado, se refresca la capa
   mouseUp() {
     this.clicked = false
     this.cursor = "grab"
     this.refreshTile()
   }
 
+  // Cuando el mouse se mueve, mueve el mapa, según su última x y y
   mouseMove(e: MouseEvent) {
     if (this.clicked) {
       this.moveXY(e.x, e.y)
@@ -230,16 +263,19 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // Mueve el mapa a cierto x o y, se utiliza para el evento de mouseMove dentro del mapa
   moveXY(x, y) {
     this.currentXY.x = this.currentXY.x + (this.lastXY.x - x) * this.size * 0.0015
     this.currentXY.y = this.currentXY.y + (this.lastXY.y - y) * this.size * 0.0015
     this.verifyBounds()
   }
 
+  // Evento que hace que cuando da doble click se haga zoomin
   dbClick(e) {
     this.zoomin()
   }
 
+  // Verifica que el viewBox no se salga de las coordenadas
   verifyBounds() {
     if (this.currentXY.x < 0) {
       this.currentXY.x = 0
@@ -255,6 +291,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // Coloca el centro en x y y dadas, en base 256
   setCenter(x, y, refreshTile = true) {
     this.currentXY.x = x - (this.size / 2)
     this.currentXY.y = y - (this.size / 2)
@@ -262,11 +299,13 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       this.refreshTile()
   }
 
+  // Coloca el centro en lat y lng dada
   setCenterLatLng(lat, lng) {
     let projected = TilesUtils.project(lat, lng, this.TILE_SIZE)
     this.setCenter(projected.lng, projected.lat)
   }
 
+  // Coloca el mapa en la posición actual del usuario
   setOnCurrentPosition() {
     let setOnCurrentPosition = (p) => {
       //this.setLocationLatLng(p.coords.latitude, p.coords.longitude)
@@ -285,6 +324,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     window.navigator.geolocation.getCurrentPosition(setOnCurrentPosition, errorGettingPosition)
   }
 
+  // Actualiza la posición actual del usuario
   getCurrentPosition() {
     let setCurrentPosition = (p) => {
       let projected = TilesUtils.project(p.coords.latitude, p.coords.longitude, this.TILE_SIZE)
@@ -301,17 +341,19 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     window.navigator.geolocation.getCurrentPosition(setCurrentPosition, errorGettingPosition)
   }
 
+  // Setea el intérvalo para que cada 1 segundo actualice la posición actual
   setIntervals() {
     setInterval(this.getCurrentPosition.bind(this), 1000)
     this.setupMapInfoWS()
   }
 
+  // Limpia lo que había en el tooltip y luego lo muestra
   showTooltip() {
     this.clearTooltip()
     this.tooltip.showing = true;
   }
 
-
+  // Hace que el bounding_box sea visible al menor zoom posible
   focus() {
     if (this.boundingBox == undefined)
       return
@@ -333,6 +375,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(this.focusAux.bind(this, bounds), 0);
   }
 
+  //Función auxiliar para focus que hace zoomout hasta el sea visible el boundingBox
   focusAux(bounds) {
     if (!this.fitBounds(bounds)) {
       this.zoomout(false);
@@ -344,6 +387,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // Determina si un punto dado, proyectado o no, se encuentra dentro del viewBox
   pointOnMap(latitude, longitude, projecting = true) {
 
     let projected = { lat: latitude, lng: longitude }
@@ -355,6 +399,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     return projected.lat >= bounds[0].y && projected.lat <= bounds[1].y && projected.lng >= bounds[0].x && projected.lng <= bounds[1].x
   }
 
+  // Retorna un boolean que determina si el mapa contiene a los puntos dados
   fitBounds(bounds: { x, y }[]) {
     let fit = true;
 
@@ -365,6 +410,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     return fit;
   }
 
+  // Obtiene los bordes del viewBox
   get mapBounds() {
     return [
       { x: this.currentXY.x, y: this.currentXY.y },
@@ -372,6 +418,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     ]
   }
 
+  // Setea el socket para obtener la información de todos los grupos y mostrarla
   setupMapInfoWS() {
     let focused = false;
     this.webSocket = this.webSocketService.connect("guest")
@@ -414,6 +461,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   }
 
+  // Función que va a ser llamda por el interval que envía un mensaje al ws para obtener nuevamente la información y mostrarla
   refreshMapInfo() {
     let visibleGroups = this.groups.filter((group, i) => group.visible && this.groups.indexOf(group) == i)
     if (visibleGroups.length > 0)
@@ -431,8 +479,13 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       this.taxis = []
     }
   }
-
+  // Funciona para filtar la información por fechas y mostrar las entregas o los viajes, según lo indique la categoría
   async search(picker1: NgxMatDatetimePicker<any>, picker2: NgxMatDatetimePicker<any>) {
+    if(this.groups.length == 0){
+      this.loading = false
+      return
+    }
+    this.loading = true
     this.mailReports = []
     this.taxiRides = []
     let start = undefined;
@@ -444,6 +497,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showingFilter = false;
     this.applyingFilter = true;
     this.stopInterval();
+    
     this.groups.forEach(group => {
       this.reportsService.getReports(this.category == 2 ? 'taxi' : 'mail', group.hashtag, undefined, start, end).then(
         response => {
@@ -467,18 +521,21 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
           else{
             this.toastr.info("No hay ningún elemento para mostrar")
           }
+          this.loading = false;
         }
       )
     }
     )
   }
 
+  // Detiene el interval que muestra las
   stopInterval() {
     clearInterval(this.interval)
     this.taxis = []
     this.mails = []
   }
 
+  // Limpia el filtro de búsqueda y deja de mostrar lo buscado, vuelve a mostrar la información en realtime
   clearSearch() {
     this.applyingFilter = false;
     this.mailReports = []
@@ -488,14 +545,17 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /* TAXIS */
 
+  // Lista de taxis en realtime
   taxis = [
 
   ]
 
+  // Lista de viajes de taxis a mostrar
   taxiRides = [
 
   ]
 
+  // Recibe una lista de taxis y prepara su información para ser mostrada
   showTaxis(records: any[]) {
     records = records.filter(taxi => taxi.geom != null)
     records.forEach(taxiRecord => {
@@ -508,6 +568,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.taxis = records
   }
 
+  // Recibe una lista de viajes de taxis, prepara la información para lograr mostrarla en el mapa
   showTaxiRides(records: any[]) {
     records.forEach((value) => {
       value.projectedTrack = value.track.coordinates.map(point => {
@@ -522,9 +583,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       value.start = new Date(value.start + "+00:00")
       value.end = new Date(value.end + "+00:00")
     })
-    console.log(records)
     this.taxiRides = [...this.taxiRides, ...records]
-    console.log(this.taxiRides)
     /*
       end: "2020-10-29T03:52:55.680806", start: "2020-10-29T03:52:24.741044",…}
       collaborator: "6ef38bb0-8388-4fdc-9f46-cd6cd22273c5"
@@ -541,6 +600,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     */
   }
 
+  // Muestra el tooltip y le setea la información del taxi
   showTaxiTooltip(taxi) {
     /*
       collaborator: "6ef38bb0-8388-4fdc-9f46-cd6cd22273c5"
@@ -562,6 +622,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.tooltip.taxi = taxi
   }
 
+  // Busca mostrar todos los viejes de un colaborador
   showCollaboratorRides(taxi) {
     this.reportsService.getReports(this.category == 2 ? 'taxi' : 'mail', undefined, taxi.collaborator, undefined, undefined).then(
       response => {
@@ -586,6 +647,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     )
   }
 
+  // Muestra el tooltip y luego le setea la información del viaje
   showRideTooltip(taxi_ride){
     this.showTooltip()
     this.tooltip.taxi_ride = taxi_ride;
@@ -595,14 +657,17 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /* MAIL */
 
+  // Lista de colaboradores en realtime
   mails = [
 
   ]
 
+  // Lista de entregas a mostrar en el mapa
   mailReports = [
 
   ]
 
+  // Recibe una lista de colaboradores en realtime y prepara la ifnromación para mostrarla en el mapa
   showMails(records) {
     records = records.filter(mail => mail.geom != null)
     records.forEach(mailRecord => {
@@ -615,6 +680,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.mails = records
   }
 
+  // Recibe una lista de entrega y prepara la información para luego mostrarla en el mapa
   showMailReports(records) {
     /*
         collaborator: "2a50ddce-7eed-439b-bac5-74c425d87286"
@@ -639,11 +705,13 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.mailReports.push(...records)
   }
 
+  // Muestra el tooltip y le setea la información el colaborador
   showMailTooltip(mail) {
     this.showTooltip()
     this.tooltip.mail = mail;
   }
 
+  // Busca la ifnromación de las entregas de un colaborador y la muestra
   showCollaboratorDeliveries(mail) {
     this.reportsService.getReports(this.category == 2 ? 'taxi' : 'mail', undefined, mail.collaborator, undefined, undefined).then(
       response => {
@@ -669,11 +737,14 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     )
   }
 
+  // Muestra el tooltip y le setea la información de la entrega
   showDeliveryTooltip(delivary){
     this.showTooltip();
     this.tooltip.delivery = delivary;
   }
 
+
+  // Oculta y limpia la información del tooltip
   clearTooltip() {
     this.tooltip = {
       showing: false,
@@ -684,7 +755,5 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       delivery: undefined
     }
   }
-
-
 
 }

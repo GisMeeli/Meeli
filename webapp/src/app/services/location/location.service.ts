@@ -2,6 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { API_URL } from 'src/environments/environment';
 
+/* 
+  Otiene la provincia, cantón y distrito donde se ubica cierta lat y lng
+*/
+
+
 @Injectable({
   providedIn: 'root'
 })

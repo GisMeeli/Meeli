@@ -151,7 +151,7 @@ export class MailComponent implements OnInit, OnDestroy {
     this.collabSockets.forEach((e: { messagesSubject: Subject<any>, socket: WebSocketSubject<any>, hashtag: string }) => {
       e.socket.next({ action: 1, data: { lat: currentLocation.lat, lon: currentLocation.lng } })
       e.socket.asObservable().subscribe(response => {
-        console.log(response)
+        console.debug(response)
       })
     })
   }
@@ -161,7 +161,7 @@ export class MailComponent implements OnInit, OnDestroy {
     if (this.interval != undefined) {
       clearInterval(this.interval)
     }
-    this.interval = setInterval(this.sendCollaboratorInfo.bind(this), 5000)
+    this.interval = setInterval(this.sendCollaboratorInfo.bind(this), 1000)
   }
 
   // Hace que un grupo se elimine de la lista de grupos que estoy viendo, si tuviese conexiones de gestor, las cierra

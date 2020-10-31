@@ -1,6 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { API_URL } from "src/environments/environment"
+
+
+/* 
+  Servicio para obtener información, crear y verificar el ingreso de grupos
+*/
+
+
 @Injectable({
   providedIn: 'root'
 })

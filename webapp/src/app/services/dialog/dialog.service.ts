@@ -4,7 +4,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { AdminGroupComponent } from 'src/app/admin-group/admin-group.component';
 import { CreateGroupComponent } from 'src/app/create-group/create-group.component';
 
-
+/* 
+  Funciona para llamar a los dialogs de manera más fácil
+*/
 @Injectable({
   providedIn: 'root'
 })
