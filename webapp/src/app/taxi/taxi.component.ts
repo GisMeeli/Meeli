@@ -8,9 +8,6 @@ import { Subject } from 'rxjs';
 import { WebSocketSubject } from 'rxjs/webSocket';
 import GeolocationUtils from '../utils/geolocation.utils';
 import { LocationService } from '../services/location/location.service';
-import { debug } from 'console';
-import { debugPort } from 'process';
-import { debuglog } from 'util';
 
 @Component({
   selector: 'app-taxi',
