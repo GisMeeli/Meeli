@@ -17,6 +17,8 @@ import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { AdminGroupComponent } from './admin-group/admin-group.component';
 import { ToastrModule } from 'ngx-toastr';
+import { TaxiStatisticsComponent } from './taxi-statistics/taxi-statistics.component';
+import { MailStatisticsComponent } from './mail-statistics/mail-statistics.component';
 
 
 
@@ -28,7 +30,9 @@ import { ToastrModule } from 'ngx-toastr';
     CreateGroupComponent,
     MailComponent,
     TaxiComponent,
-    AdminGroupComponent
+    AdminGroupComponent,
+    TaxiStatisticsComponent,
+    MailStatisticsComponent
   ],
   imports: [
     BrowserModule,

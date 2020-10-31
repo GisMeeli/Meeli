@@ -49,6 +49,7 @@ export class AdminGroupComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  // Metodo para solicitar al servicio de grupos para añadir un gestor a un grupo.
   addUser(){
     
     this.addingUser = false
@@ -66,6 +67,7 @@ export class AdminGroupComponent implements OnInit {
     );
   }
 
+  // Metodo para limpiar la lista actual de gestores y cargar los existentes.
   cargarListaGestores() {
     this.users = []
     this.groupsService.getCollaboratorByHashtag(this.hashtag).subscribe(result => {
@@ -73,6 +75,8 @@ export class AdminGroupComponent implements OnInit {
     })
   }
 
+  // Metodo encargado de obtener los gestores a eliminar para ser enviados al servicio 
+  // de grupos para eliminar estos.
   onGroupsChange(options: MatListOption[]) {
     // map these MatListOptions to their values
     this.gestoresEliminar = options.map(o => o.value)
@@ -85,6 +89,7 @@ export class AdminGroupComponent implements OnInit {
     console.log(this.gestoresEliminar)
   }
 
+  // Metodo para enviar los gestores a eliminar al servicio de grupos
   eliminarGestor(){
     this.gestoresEliminar.map(gestor => {
       this.groupsService.deleteCollaborator(this.hashtag, gestor.id).subscribe(

@@ -198,4 +198,7 @@ export class MailComponent implements OnInit, OnDestroy {
     )
   }
 
+  verEstadisticas(){
+    let dialog = this.dialogService.mailStatisticsDialog();
+  }
 }

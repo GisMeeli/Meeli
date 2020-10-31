@@ -222,5 +222,8 @@ export class TaxiComponent implements OnInit, OnDestroy {
     )
   }
 
+  verEstadisticas(){
+    let dialog = this.dialogService.taxiStatisticsDialog();
+  }
 
 }

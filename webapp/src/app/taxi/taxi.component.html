@@ -1,9 +1,13 @@
 <mat-toolbar color="accent">
     Meeli | TAXI
+
+    <button mat-stroked-button style="background-color: azure; position: absolute; right: 8%; top: 1%; margin: 10px 10px; width: 70px; min-width: min-content; "
+        (click)="verEstadisticas();" color="accent">Ver estadisticas
+    </button>
 </mat-toolbar>
-<mat-progress-bar mode="indeterminate" color="accent" *ngIf="loading"></mat-progress-bar>
-<div style="height: 4px; width: 100%; background-color:#ff4081;" *ngIf="!loading"></div>
-<section class="app-container">
+  <mat-progress-bar mode="indeterminate" color="accent" *ngIf="loading"></mat-progress-bar>
+  <div style="height: 4px; width: 100%; background-color:#ff4081;"  *ngIf="!loading"></div>
+  <section class="app-container">
     <section class="container">
         <button mat-raised-button class="mobile-groups" color="primary"
             (click)="mobileShowGroups = !mobileShowGroups">{{mobileShowGroups? "Atras": "Grupos"}}</button>
