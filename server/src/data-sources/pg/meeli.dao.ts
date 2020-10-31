@@ -18,6 +18,8 @@ export class MeeliDao implements MeeliRepository {
       [point.lon, point.lat]
     );
 
+    pg.release();
+
     if (0 < result.rowCount) {
       const target = result.rows[0];
       
