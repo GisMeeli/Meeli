@@ -160,4 +160,7 @@ export class MailComponent implements OnInit {
     this.interval = setInterval(this.sendCollaboratorInfo.bind(this), 5000)
   }
 
+  verEstadisticas(){
+    let dialog = this.dialogService.mailStatisticsDialog();
+  }
 }

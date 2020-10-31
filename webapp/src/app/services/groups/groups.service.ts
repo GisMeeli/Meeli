@@ -50,4 +50,12 @@ export class GroupsService {
     return this.http.delete(`${API_URL}/groups/${hashtag}/collaborators/${id}`);
   }
 
+  getTaxiStatistics(category, hashtag) {
+    return this.http.get(`${API_URL}/meeli/reports?category=${category}&hashtag=${hashtag}`);
+  }
+
+  getTaxiStatisticsByDate(category, hashtag, date) {
+    return this.http.get(`${API_URL}/meeli/reports?category=${category}&hashtag=${hashtag}&from=${date}T00:00:00&to=${date}T24:00:00`);
+  }
+
 }

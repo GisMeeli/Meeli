@@ -19,6 +19,8 @@ import { TaxiCollaboratorComponent } from './taxi-collaborator/taxi-collaborator
 import { MailCollaboratorComponent } from './mail-collaborator/mail-collaborator.component';
 import { AdminGroupComponent } from './admin-group/admin-group.component';
 import { ToastrModule } from 'ngx-toastr';
+import { TaxiStatisticsComponent } from './taxi-statistics/taxi-statistics.component';
+import { MailStatisticsComponent } from './mail-statistics/mail-statistics.component';
 
 
 
@@ -31,7 +33,9 @@ import { ToastrModule } from 'ngx-toastr';
     TaxiComponent,
     TaxiCollaboratorComponent,
     MailCollaboratorComponent,
-    AdminGroupComponent
+    AdminGroupComponent,
+    TaxiStatisticsComponent,
+    MailStatisticsComponent
   ],
   imports: [
     BrowserModule,

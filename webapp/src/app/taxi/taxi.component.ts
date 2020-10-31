@@ -173,5 +173,8 @@ export class TaxiComponent implements OnInit {
     this.interval = undefined;
   }
 
+  verEstadisticas(){
+    let dialog = this.dialogService.taxiStatisticsDialog();
+  }
 
 }
