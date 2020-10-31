@@ -27,7 +27,7 @@ export function MeeliRouter(meeli: MeeliService, groups: GroupsService): Router 
 
       res.status(200).json(result);
     })
-    .get('/where-i-am', async (req: Request, res: Response) => {
+    .get('/where-am-i', async (req: Request, res: Response) => {
       const lat = req.query.lat as string;
       const lon = req.query.lon as string;
 
