@@ -1,13 +1,30 @@
 version: '3.8'
 services:
+  postgis:
+    container_name: '${PROJECT_NAME}-postgis'
+    image: postgis/postgis:12-master
+    restart: always
+    environment:
+      POSTGRES_DB: ${SERVER_DB_NAME}
+      POSTGRES_PASSWORD: ${SERVER_DB_PASSWORD}
+    ports:
+      - '${SERVER_DB_PORT}:5432'
+    networks:
+      - default
+    volumes:
+      - ./db/cr-administrative-division.sql:/docker-entrypoint-initdb.d/cr-administrative-division.sql
+      - ./db/ddl.sql:/docker-entrypoint-initdb.d/ddl.sql
   redis:
     container_name: '${PROJECT_NAME}-redis'
     image: 'redis:alpine'
     restart: on-failure
+    command: redis-server /usr/local/etc/redis/redis.conf
     ports:
       - '${REDIS_PORT}:6379'
     networks:
       - default
+    volumes:
+      - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
   server:
     container_name: '${PROJECT_NAME}-server'
     image: 'meeli/server'
@@ -15,7 +32,8 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
-    depends_on: 
+    depends_on:
+      - postgis
       - redis
     environment:
       SERVER_JWT_SECRET: ${SERVER_JWT_SECRET}
@@ -53,3 +71,5 @@ services:
 networks:
   default:
     driver: bridge
+volumes:
+  postgis_data:

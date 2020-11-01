@@ -5,6 +5,10 @@
     DDL Script
 */
 
+begin;
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- Módulo de grupos
 
 create table if not exists public."group"
@@ -249,3 +253,5 @@ declare
 	return _json;
 end;
 $$;
+
+end;
