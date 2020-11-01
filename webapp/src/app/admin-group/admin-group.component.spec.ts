@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SidenavComponent } from './sidenav.component';
+import { AdminGroupComponent } from './admin-group.component';
 
-describe('SidenavComponent', () => {
-  let component: SidenavComponent;
-  let fixture: ComponentFixture<SidenavComponent>;
+describe('AdminGroupComponent', () => {
+  let component: AdminGroupComponent;
+  let fixture: ComponentFixture<AdminGroupComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SidenavComponent ]
+      declarations: [ AdminGroupComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SidenavComponent);
+    fixture = TestBed.createComponent(AdminGroupComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

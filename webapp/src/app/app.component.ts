@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { catchError, map, tap } from 'rxjs/operators';
+import { WebsocketService } from './services/websocket/websocket.service';
 
 @Component({
   selector: 'app-root',
@@ -7,4 +9,10 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'meeli';
+
+  constructor(
+    
+  ){
+    
+  }
 }

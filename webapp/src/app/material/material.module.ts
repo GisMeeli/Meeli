@@ -13,6 +13,11 @@ import {MatListModule} from '@angular/material/list';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatTableModule} from '@angular/material/table';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {MatProgressBarModule} from '@angular/material/progress-bar';
+import { NgxMatDatetimePickerModule, NgxMatNativeDateModule, NgxMatTimepickerModule } from '@angular-material-components/datetime-picker';
+import {MatDatepickerModule} from '@angular/material/datepicker';
+import {MatNativeDateModule} from '@angular/material/core';
 
 @NgModule({
     imports: [
@@ -29,6 +34,14 @@ import {MatTableModule} from '@angular/material/table';
         MatDialogModule,
         MatTooltipModule,
         MatTableModule,
+        MatProgressSpinnerModule,
+        MatProgressBarModule,
+        NgxMatDatetimePickerModule,
+        NgxMatTimepickerModule,
+        MatDatepickerModule,
+        NgxMatNativeDateModule,
+        MatDatepickerModule,
+        MatNativeDateModule
     ],
     exports: [
         MatToolbarModule,
@@ -44,6 +57,14 @@ import {MatTableModule} from '@angular/material/table';
         MatDialogModule,
         MatTooltipModule,
         MatTableModule,
+        MatProgressSpinnerModule,
+        MatProgressBarModule,
+        NgxMatDatetimePickerModule,
+        NgxMatTimepickerModule,
+        MatDatepickerModule,
+        NgxMatNativeDateModule,
+        MatDatepickerModule,
+        MatNativeDateModule
     ]
   })
   

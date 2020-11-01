@@ -1,0 +1,95 @@
+
+.map-container {
+    height: 100%; 
+    width: 55vw; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.button-zoom {
+    background-color: white;
+    padding: 0;
+    max-width: 10px;
+    min-width: 30px;
+    min-height: 30px;
+    max-height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
+}
+
+.controls-container{
+    display: flex; 
+    top: 5px; 
+    position: absolute; 
+    flex-direction: column; 
+}
+
+.controls-container.right{
+    right: 5px;
+}
+
+.controls-container.left{
+    left: 5px;
+}
+
+.controls-container.bottom{
+    bottom: 5px;
+    top: unset;
+    flex-direction: row;
+}
+
+
+.bottom-panel {
+    position: absolute;
+    bottom: -70px;
+    height: 70px;
+    overflow: hidden;
+    transition: 0.7s;
+    width: 100%;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.bottom-panel.visible {
+    bottom: 0px;
+}
+
+@media only screen and (max-width: 599px) {
+    .map-container {
+        width: 100vw;
+    }
+}
+
+.tooltip {
+    position: absolute;
+    background-color: white;
+    border-radius: 5px;
+    top: 10px;
+    right: 10px;
+}
+
+.clear-tooltip{
+    position: absolute; 
+    top: -6px; 
+    right: -6px;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 25px;
+    max-width: 25px;
+    min-height: 25px;
+    max-height: 25px;
+}
+
+.clear-tooltip .material-icons {
+    height: unset;
+    width: unset;
+    font-size: 15px;
+}

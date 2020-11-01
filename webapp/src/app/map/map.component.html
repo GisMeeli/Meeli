@@ -1,25 +1,257 @@
-<div style="height: 100%; width: 55vw; display: flex">
+<div class="map-container">
 
-    <div style="margin: auto; display: flex; flex-direction: column; width: 85%; height: 90%; position: relative;">
-  
-      <div style="display: flex; margin: 10px auto; position: absolute; flex-direction: column;">
-        <button mat-stroked-button (click)="zoomin()" [disabled]="this.zoom >= 17" style="background-color: white;">+</button>
-        <button mat-stroked-button (click)="zoomout()" [disabled]="this.zoom <= 0" style="background-color: white; padding: 0; max-width: 10px;">-</button>
-      </div>
+  <div style="display: flex; flex-direction: column; width: 85%; height: 90%; position: relative; overflow: hidden;"
+    (click)="showingFilter = false">
+    <div *ngIf="loading"
+      style="position: absolute; top: 0; left: 0; background-color: rgba(0, 0, 0, 0.163); height: 100%; width: 100%; display: flex; justify-content: center; align-items: center;">
+      <mat-spinner></mat-spinner>
+    </div>
 
-      <svg [attr.viewBox]="viewBox" preserveAspectRatio="xMinYMin" id="map" [attr.width]="TILE_SIZE" [attr.height]="TILE_SIZE" (attr.width)="svg.width" (attr.height)="svg.height"
-        style="background-color: rgb(226, 226, 226); height: 100%; width: 100%; margin: auto;" [style.cursor]="cursor" 
-        (mousedown)="mouseDown($event)" 
-        (mousemove)="mouseMove($event)" 
-        (mouseup)="mouseUp()" 
-        (mouseleave)="mouseUp()">
-        <svg [attr.width]="TILE_SIZE" [attr.height]="TILE_SIZE" x="0" y="0" (dblclick)="dbClick($event)">
-            <image preserveAspectRatio="none" *ngFor="let img of tileImages[zoom]" [attr.href]="tileUrl(img.x, img.y, img.z)" [attr.x]="img.lng" [attr.y]="img.lat" [attr.width]="imageWidth"></image>
-        </svg>
-        <circle cx="68.44200675555555" cy="121.03375382431418" [attr.r]="size * 0.01" fill="yellow" stroke="blue" stroke-width="0" (click)="circleClick()" />
-        <rect x="-50" y="60" width="40" height="10" fill="red" stroke="blue" stroke-width="1" />
+
+    <svg [attr.viewBox]="viewBox" preserveAspectRatio="xMinYMin" id="map" [attr.width]="TILE_SIZE"
+      [attr.height]="TILE_SIZE" (attr.width)="svg.width" (attr.height)="svg.height"
+      style="background-color: rgb(226, 226, 226); height: 100%; width: 100%; margin: auto;" [style.cursor]="cursor"
+      (mousedown)="mouseDown($event)" (mousemove)="mouseMove($event)" (mouseup)="mouseUp()" (mouseleave)="mouseUp()"
+      (wheel)="wheel($event)">
+
+      <svg [attr.width]="TILE_SIZE" [attr.height]="TILE_SIZE" x="0" y="0" (dblclick)="dbClick($event)">
+        <image preserveAspectRatio="none" *ngFor="let img of tileImages[zoom]"
+          [attr.href]="tileUrl(img.x, img.y, img.z)" [attr.x]="img.lng" [attr.y]="img.lat" [attr.width]="imageWidth">
+        </image>
       </svg>
-  
-      
+
+      <svg [attr.width]="TILE_SIZE" [attr.height]="TILE_SIZE" x="0" y="0">
+        <!-- MAIL COLLABS -->
+        <svg *ngFor="let mail of mails" viewBox="0 0 64 64" [attr.x]="mail.x - ((markerSize*0.8) / 2)"
+          [attr.y]="mail.y - ((markerSize*0.8) / 2)" (click)="showMailTooltip(mail)" [attr.width]="markerSize * 0.8"
+          [attr.height]="markerSize * 0.8">
+          <path data-name="layer4" d="M59.2 31h-3.9l-4.4-8H39v8h20.2z" fill="#c3d6e0"></path>
+          <path data-name="layer2" d="M61 32.4c0-1.1-.9-1.3-1.7-1.4H39v12h5.5a6 6 0 0 1 8.9 0H61z" fill="#415582">
+          </path>
+          <path data-name="layer3" d="M39 15H3v28h5.5a6 6 0 0 1 8.9 0H39V15z" fill="#f27e7c"></path>
+          <circle data-name="layer2" cx="13" cy="47" r="6" fill="#415582"></circle>
+          <circle data-name="layer2" cx="49" cy="47" r="6" fill="#415582"></circle>
+          <path data-name="layer1" d="M44.5 43h-27a6 6 0 0 1 1.2 6h24.6a6 6 0 0 1 1.2-6zm9 0a6 6 0 0 1 1.2 6H61v-6z"
+            fill="#6479a0"></path>
+          <path data-name="opacity" fill="#fff" opacity=".5" d="M51.8 24.6l-.9-1.6h-3.3l-8 8h5.7l6.5-6.4z"></path>
+          <path data-name="opacity"
+            d="M8 15H3v28h5.5a6 6 0 0 1 8.9 0H39v-4H8zm10.6 34h24.7a5.7 5.7 0 0 1-.3-3H18.9a5.7 5.7 0 0 1-.3 3zm36 0H61v-3h-6.1a5.7 5.7 0 0 1-.3 3z"
+            fill="#000064" opacity=".15"></path>
+          <circle data-name="opacity" cx="13" cy="47" r="3" fill="#000064" opacity=".2"></circle>
+          <circle data-name="opacity" cx="49" cy="47" r="3" fill="#000064" opacity=".2"></circle>
+          <path data-name="stroke" fill="none" stroke="#2e4369" stroke-linecap="round" stroke-linejoin="round"
+            stroke-width="1"
+            d="M43.3 49H18.7M61 49h-6.3m-10.2-6H39m0-20h11.9l4.4 8h3.9c.8 0 1.8.2 1.8 1.4V43h-7.5m1.8-12H39M8.5 43H3V15h36v28H17.5">
+          </path>
+          <circle data-name="stroke" cx="13" cy="47" r="6" fill="none" stroke="#2e4369" stroke-linecap="round"
+            stroke-linejoin="round" stroke-width="1"></circle>
+          <circle data-name="stroke" cx="49" cy="47" r="6" fill="none" stroke="#2e4369" stroke-linecap="round"
+            stroke-linejoin="round" stroke-width="1"></circle>
+        </svg>
+
+        <!-- TAXI COLLABS -->
+        <svg *ngFor="let taxi of taxis" viewBox="0 0 64 64" [attr.x]="taxi.x - ((markerSize*0.8) / 2)"
+          [attr.y]="taxi.y - ((markerSize*0.8) / 2)" (click)="showTaxiTooltip(taxi)" [attr.width]="markerSize * 0.8"
+          [attr.height]="markerSize * 0.8">
+          <path data-name="layer3"
+            d="M4 28h39l-5.5-10a3.7 3.7 0 0 0-3.1-2H10.3c-1 0-2 1-2.6 2S1.8 29 1.8 29A3 3 0 0 1 4 28z" fill="#c3d6e0">
+          </path>
+          <circle data-name="layer2" cx="14" cy="42" r="6" fill="#2a3142"></circle>
+          <circle data-name="layer2" cx="50" cy="42" r="6" fill="#2a3142"></circle>
+          <path data-name="layer1" d="M59 28H5a3 3 0 0 0-3 3v11h6a6 6 0 0 1 12 0h24a6 6 0 0 1 12 0h6V31a3 3 0 0 0-3-3z"
+            [attr.fill]="taxi.is_available? '#0fdb1a': '#db0f0f'"></path>
+          <circle data-name="opacity" cx="14" cy="42" r="3" fill="#000064" opacity=".2"></circle>
+          <circle data-name="opacity" cx="50" cy="42" r="3" fill="#000064" opacity=".2"></circle>
+          <path data-name="opacity" d="M18.2 16l-12 12H16l12-12zm19.3 2a4.1 4.1 0 0 0-2-1.8L23.7 28h5.7l8.8-8.8z"
+            fill="#fff" opacity=".5"></path>
+          <path data-name="opacity"
+            d="M7 28H5a3 3 0 0 0-3 3v11h6a6 6 0 0 1 .9-3.1H7zm49 14h6v-3.1h-6.9A6 6 0 0 1 56 42zm-36 0h24a6 6 0 0 1 .9-3.1H19.1A6 6 0 0 1 20 42z"
+            fill="#000064" opacity=".15"></path>
+          <path data-name="stroke" d="M44 28l-5.5-10a3.7 3.7 0 0 0-3.1-2H11.3c-1 0-2 1-2.6 2S2.8 29 2.8 29" fill="none"
+            stroke="#6d6f73" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"></path>
+          <path data-name="stroke" d="M56 42h6V31a3 3 0 0 0-3-3H5a3 3 0 0 0-3 3v11h6m12 0h24" fill="none"
+            stroke="#6d6f73" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"></path>
+          <circle data-name="stroke" cx="14" cy="42" r="6" fill="none" stroke="#6d6f73" stroke-linecap="round"
+            stroke-linejoin="round" stroke-width="1"></circle>
+          <circle data-name="stroke" cx="50" cy="42" r="6" fill="none" stroke="#6d6f73" stroke-linecap="round"
+            stroke-linejoin="round" stroke-width="1"></circle>
+        </svg>
+
+        <!-- TAXI RIDES -->
+
+        <path *ngFor="let ride of taxiRides" [attr.d]="ride.svgTrack" stroke="#f50057" (click)="showRideTooltip(ride)"
+          [attr.stroke-width]="ride == tooltip.taxi_ride? 0.00015 : 0.00007" fill="none" />
+        <circle *ngFor="let ride of taxiRides" [attr.cx]="ride.projectedTrack[0][0]"  (click)="showRideTooltip(ride)"
+          [attr.cy]="ride.projectedTrack[0][1]" [attr.r]="markerSize * 0.1" fill="#3f51b5" />
+
+        <circle *ngFor="let ride of taxiRides" [attr.cx]="ride.projectedTrack[ride.projectedTrack.length - 1][0]"  (click)="showRideTooltip(ride)"
+          [attr.cy]="ride.projectedTrack[ride.projectedTrack.length - 1][1]" [attr.r]="markerSize * 0.1"
+          fill="#3f51b5" />
+
+        
+        <!-- DELIVERIES -->
+
+        <svg viewBox="0 0 64 64" *ngFor="let mail of mailReports" (click)="showDeliveryTooltip(mail)" 
+        [attr.x]="mail.projectedPoint[0] - ((markerSize*0.7) / 2)" [attr.y]="mail.projectedPoint[1] - ((markerSize*0.7) / 2)" 
+        [attr.width]="markerSize * 0.8" [attr.height]="markerSize * 0.8">
+          <circle data-name="layer2" cx="46" cy="46" r="16" fill="#44d88d"></circle>
+          <path data-name="layer1" d="M46 30a16 16 0 0 1 4 .5V16.4L40.4 2H11.6L2 16.4V50h28.5A15.9 15.9 0 0 1 46 30z"
+            fill="#fc9"></path>
+          <path data-name="opacity" fill="#fff" opacity=".25" d="M40.4 2H11.6L2.3 16h47.4L40.4 2z"></path>
+          <path data-name="opacity" d="M30.5 50a15.9 15.9 0 0 1 11-19.3 16 16 0 0 0-20 19.3h9z" fill="#000064"
+            opacity=".15"></path>
+          <path data-name="stroke" fill="none" stroke="#2e4369" stroke-linecap="round" stroke-linejoin="round"
+            stroke-width="2" d="M30.5 50H2V16.4L11.6 2h28.8L50 16.4v14.1M2.3 16h47.4M26 2v14"></path>
+          <circle data-name="stroke" cx="46" cy="46" r="16" fill="none" stroke="#2e4369" stroke-linecap="round"
+            stroke-linejoin="round" stroke-width="2"></circle>
+          <path data-name="stroke" fill="none" stroke="#2e4369" stroke-linecap="round" stroke-linejoin="round"
+            stroke-width="2" d="M53 42.1l-8 9-5-5"></path>
+        </svg>
+      </svg>
+
+      <svg *ngIf="currentPosition != undefined" (click)="showTooltip('mi ubicación')"
+        [attr.x]="currentPosition != undefined? (currentPosition.x - (markerSize / 2)): 0"
+        [attr.y]="currentPosition != undefined? (currentPosition.y - markerSize): 0" xmlns="http://www.w3.org/2000/svg"
+        aria-labelledby="title" aria-describedby="desc" role="img" xmlns:xlink="http://www.w3.org/1999/xlink"
+        [attr.width]="markerSize" [attr.height]="markerSize" viewBox="0 0 64 64">
+        <title>Mi ubicación</title>
+        <path data-name="layer1" fill="#f50057"
+          d="M32 2a20 20 0 0 0-20 20c0 18 20 40 20 40s20-22 20-40A20 20 0 0 0 32 2zm0 28a8 8 0 1 1 8-8 8 8 0 0 1-8 8z">
+        </path>
+      </svg>
+    </svg>
+
+    <div class="controls-container left">
+      <button mat-stroked-button (click)="zoomin()" [disabled]="this.zoom >= 17" class="button-zoom">+</button>
+      <button mat-stroked-button (click)="zoomout()" [disabled]="this.zoom <= 0" class="button-zoom">-</button>
+      <button mat-stroked-button (click)="setOnCurrentPosition()" [disabled]="this.zoom <= 0" class="button-zoom"
+        matTooltip="Centrar en mi ubicacion">
+        <mat-icon style="font-size: 100%; height: unset; width: unset;">gps_fixed</mat-icon>
+      </button>
+      <button mat-stroked-button (click)="focus()" [disabled]="this.zoom <= 0" class="button-zoom"
+        matTooltip="Enfocar los grupos">
+        <mat-icon style="font-size: 100%; height: unset; width: unset;">filter_center_focus</mat-icon>
+      </button>
+    </div>
+
+    <div class="controls-container bottom left" (click)="$event.stopPropagation()">
+      <button mat-stroked-button (click)="showingFilter = !showingFilter" class="button-zoom"
+        matTooltip="Ver registros anteriores">
+        <mat-icon style="font-size: 100%; height: unset; width: unset;">search</mat-icon>
+      </button>
+      <button mat-stroked-button (click)="clearSearch()" *ngIf="applyingFilter" class="button-zoom"
+        matTooltip="Quitar filtros">
+        <mat-icon style="font-size: 100%; height: unset; width: unset;">close</mat-icon>
+      </button>
+    </div>
+
+    <div class="bottom-panel" [ngClass]="showingFilter? 'visible': ''" (click)="$event.stopPropagation()">
+      <mat-form-field style=" width: 35%;">
+        <input matInput [ngxMatDatetimePicker]="picker" [max]="date" placeholder="Fecha y hora de inicio">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <ngx-mat-datetime-picker #picker></ngx-mat-datetime-picker>
+      </mat-form-field>
+      <mat-form-field style="width: 35%;">
+        <input matInput [ngxMatDatetimePicker]="picker2" [min]="picker._selected" [max]="date"
+          placeholder="Fecha y hora de fin">
+        <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+        <ngx-mat-datetime-picker #picker2></ngx-mat-datetime-picker>
+      </mat-form-field>
+
+      <button mat-stroked-button [disabled]="!picker._selected == null|| !picker2._selected == null"
+        style="min-width: 40px; max-width: 40px; padding: 0; min-height: 40px; max-height: 40px" color="primary"
+        (click)="search(picker, picker2)">
+        <mat-icon>search</mat-icon>
+      </button>
+    </div>
+
+    <div *ngIf="tooltip.showing" class="tooltip">
+      <div style="position: relative; width: 100%; height: 100%;">
+        <button mat-mini-fab color="primary" class="clear-tooltip mat-elevation-z" (click)="clearTooltip()">
+          <mat-icon>clear</mat-icon>
+        </button>
+        <div
+          style="padding: 25px 15px; width: calc(100% - 30px); height: 100%; text-align: center; line-height: 1.7">
+          <div *ngIf="tooltip.taxi" style="color: rgb(103, 103, 103); font-size: 12px;">
+            <div style="color: #3f51b5; font-size: 15px; font-weight: 800;">
+              {{tooltip.taxi.driver_name}}
+            </div>
+            <div>
+              #{{tooltip.taxi.hashtag}}
+            </div>
+            <div>
+              {{tooltip.taxi.is_available? "Libre": "En viaje"}}
+            </div>
+            <div>
+              {{tooltip.taxi.last_seen | date: 'mediumTime'}}
+            </div>
+            <div>
+              {{tooltip.taxi.vehicle_plate}} | {{tooltip.taxi.vehicle_brand}}, {{tooltip.taxi.vehicle_model}}
+            </div>
+            <button mat-raised-button (click)="showCollaboratorRides(tooltip.taxi)" style="font-size: 12px; padding: 0 8px; line-height: 27px; margin-top: 5px;" color="accent">
+              Ver viajes del taxi
+            </button>
+          </div>
+
+          <div *ngIf="tooltip.mail" style="color: rgb(103, 103, 103); font-size: 12px;">
+            <div style="color: #3f51b5; font-size: 15px; font-weight: 800;">
+              {{tooltip.mail.driver_name}}
+            </div>
+            <div>
+              #{{tooltip.mail.hashtag}}
+            </div>
+            <div>
+              {{(tooltip.mail.last_seen) | date: 'mediumTime'}}
+            </div>
+            <div>
+              {{tooltip.mail.vehicle_plate}} | {{tooltip.mail.vehicle_brand}}, {{tooltip.mail.vehicle_model}}
+            </div>
+            <button mat-raised-button (click)="showCollaboratorDeliveries(tooltip.mail)" style="font-size: 12px; padding: 0 8px; line-height: 27px; margin-top: 5px;" color="accent">
+              Ver entregas del grestor
+            </button>
+          </div>
+
+          <div *ngIf="tooltip.taxi_ride" style="color: rgb(103, 103, 103); font-size: 12px;">
+            <div style="color: #3f51b5; font-size: 15px; font-weight: 800;">
+              {{tooltip.taxi_ride.driver_name}}
+            </div>
+            <div>
+              #{{tooltip.taxi_ride.hashtag}}
+            </div>
+            <div>
+              Metros recorridos {{tooltip.taxi_ride.metters | number:'1.0-0'}}m
+            </div>
+            <div>
+              Viaje {{tooltip.taxi_ride.ride_count}} en la sesión 
+            </div>
+            <div>
+              De {{(tooltip.taxi_ride.start) | date: 'short'}} <br>
+              a  {{(tooltip.taxi_ride.end) | date: 'short'}}
+            </div>
+            <div>
+              {{tooltip.taxi_ride.vehicle_plate}} | {{tooltip.taxi_ride.vehicle_brand}}, {{tooltip.taxi_ride.vehicle_model}}
+            </div>
+          </div>
+
+          <div *ngIf="tooltip.delivery" style="color: rgb(103, 103, 103); font-size: 12px;">
+            <div style="color: #3f51b5; font-size: 15px; font-weight: 800;">
+              {{tooltip.delivery.driver_name}}
+            </div>
+            <div>
+              #{{tooltip.delivery.hashtag}}
+            </div>
+            <div>
+              Entrega {{tooltip.delivery.delivery_count}} en la sesión 
+            </div>
+            <div>
+              Entregado el {{(tooltip.delivery.last_seen) | date: 'short'}}
+            </div>
+            <div>
+              {{tooltip.delivery.vehicle_plate}} | {{tooltip.delivery.vehicle_brand}}, {{tooltip.delivery.vehicle_model}}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+</div>

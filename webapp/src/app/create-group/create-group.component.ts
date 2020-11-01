@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { ToastrService } from 'ngx-toastr';
+import { GroupsService } from '../services/groups/groups.service';
 
 @Component({
   selector: 'app-create-group',
@@ -7,39 +10,44 @@ import { Component, OnInit } from '@angular/core';
 })
 export class CreateGroupComponent implements OnInit {
 
-  columns = ["name", "accessCode", "actions"]
-
-  users = [
-    // {name: "Nombre 1", accessCode: "estecode"},
-    // {name: "Nombre 2", accessCode: "estecode"},
-    // {name: "Nombre 3", accessCode: "estecode"},
-    // {name: "Nombre 4", accessCode: "estecode"},
-    // {name: "Nombre 5", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-    // {name: "Nombre 6", accessCode: "estecode"},
-  ]
-
-  addingUser = false
+  public group;
 
 
-  constructor() { }
+  constructor(
+    private dialogRef: MatDialogRef<CreateGroupComponent>, 
+    private groupsService: GroupsService,
+    private toastr: ToastrService,
+    @Inject(MAT_DIALOG_DATA) public category: Number) { 
+    this.group = {
+      hashtag: '',
+      name: '',
+      description: '',
+      adminKey: '',
+      category: this.category
+    }
+  }
 
   ngOnInit(): void {
   }
+  
+  onNoClick(){
+    this.dialogRef.close()
+  }
 
-  addUser(){
-    this.addingUser = false
+  // Solicitar al servicio de los grupos para crear un grupo.
+  onYesClick(){
+    console.log(this.group)
+    this.groupsService.createGroup(this.group).subscribe(
+      data => {
+        console.log(data)
+        this.dialogRef.close(data)
+        this.toastr.success(`Se ha creado el grupo ${this.group.hashtag}`)
+      },
+      error => {
+        console.log(error);
+        this.toastr.error(`Ha ocurrido un error al crear el grupo ${this.group.hashtag}`)
+      }
+    );
   }
 
 }

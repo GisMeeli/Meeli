@@ -37,3 +37,11 @@ $meeli-theme: mat-light-theme((
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.mat-dialog-container{
+  position: relative !important; 
+}
+
+.mat-progress-bar.mat-accent .mat-progress-bar-buffer {
+  background-color: #ffd3e2 !important;
+}
