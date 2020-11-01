@@ -84,7 +84,7 @@
                         <div style="margin: auto 0; font-size: 15px; ">#{{group.hashtag}}</div>
                         <div>
                             <button mat-stroked-button *ngIf="group.role == 2" (click)="delivery(group)"
-                                matTooltip="Gestionar grupo" style="margin-right: 7px;" color="accent">
+                                matTooltip="Añadir registro de entrega" style="margin-right: 7px;" color="accent">
                                 <mat-icon>add_location_alt</mat-icon>
                             </button>
                             <button mat-stroked-button *ngIf="group.role == 1" (click)="administrarGrupo(group.hashtag)"
